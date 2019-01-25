@@ -1,6 +1,8 @@
-require "draft_approve/version"
+require 'active_record'
 
-module DraftApprove
-  class Error < StandardError; end
-  # Your code goes here...
-end
+require 'draft_approve/base_class_methods'
+require 'draft_approve/class_methods'
+require 'draft_approve/instance_methods'
+require 'draft_approve/draft'
+
+ActiveRecord::Base.extend Drafting::BaseClassMethods

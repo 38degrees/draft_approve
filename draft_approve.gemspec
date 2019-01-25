@@ -1,26 +1,32 @@
 
-lib = File.expand_path("../lib", __FILE__)
+lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "draft_approve/version"
+require 'draft_approve/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "draft_approve"
+  spec.name          = 'draft_approve'
   spec.version       = DraftApprove::VERSION
-  spec.authors       = ["TODO: Write your name"]
-  spec.email         = ["TODO: Write your email address"]
+  spec.authors       = ['Andrew Sibley']
+  spec.email         = ['andrew.s@38degrees.org.uk']
 
-  spec.summary       = %q{TODO: Write a short summary, because RubyGems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.homepage      = 'https://github.com/38dgs/draft_approve'
+  spec.summary       = %q{Save drafts of ActiveRecord models & approve them to apply the changes.}
+  spec.description   = %q{
+    All draft data is saved in a separate table, so no need to worry about
+    existing code / SQL accidentally finding non-approved data. Supports draft
+    changes to existing objects, and creating new objects as drafts. Supports
+    'draft transactions' which may update / create many objects, and must be
+    approved / rejected in their entirety.
+  }
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
   if spec.respond_to?(:metadata)
-    spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
+    spec.metadata['allowed_push_host'] = "TODO: Set to 'http://mygemserver.com'"
 
-    spec.metadata["homepage_uri"] = spec.homepage
-    spec.metadata["source_code_uri"] = "TODO: Put your gem's public repo URL here."
-    spec.metadata["changelog_uri"] = "TODO: Put your gem's CHANGELOG.md URL here."
+    spec.metadata['homepage_uri'] = spec.homepage
+    spec.metadata['source_code_uri'] = "TODO: Put your gem's public repo URL here."
+    spec.metadata['changelog_uri'] = "TODO: Put your gem's CHANGELOG.md URL here."
   else
     raise "RubyGems 2.0 or newer is required to protect against " \
       "public gem pushes."
@@ -35,7 +41,13 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
+  spec.add_dependency "activerecord", "~> 5.2"
+
   spec.add_development_dependency "bundler", "~> 1.17"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "sqlite3"
+  spec.add_development_dependency "factory_bot"
+  spec.add_development_dependency "codecov"
+  spec.add_development_dependency "appraisal"
 end
