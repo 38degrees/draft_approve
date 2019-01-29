@@ -1,8 +1,5 @@
 require 'active_record'
 
-require 'draft_approve/base_class_methods'
-require 'draft_approve/class_methods'
-require 'draft_approve/instance_methods'
-require 'draft_approve/draft'
+require 'draft_approve/draftable/base_class_methods'
 
-ActiveRecord::Base.extend Drafting::BaseClassMethods
+ActiveRecord::Base.extend DraftApprove::Draftable::BaseClassMethods
