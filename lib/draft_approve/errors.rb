@@ -9,6 +9,4 @@ module DraftApprove
   class AlreadyPersistedModelError < DraftSaveError; end
   class UnpersistedModelError < DraftSaveError; end
 
-  class UnknownDraftActionError < StandardError; end
-
 end

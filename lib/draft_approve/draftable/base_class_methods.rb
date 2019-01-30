@@ -1,5 +1,6 @@
 require 'draft_approve/draftable/class_methods'
 require 'draft_approve/draftable/instance_methods'
+require 'draft_approve/models/draft'
 
 module DraftApprove
   module Draftable

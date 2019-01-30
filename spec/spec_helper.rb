@@ -9,7 +9,10 @@ require 'pry'
 
 SPEC_ROOT = Pathname.new(File.expand_path('../', __FILE__))
 
-# Load all dummy app models
+# require all support files
+Dir[SPEC_ROOT.join('support', '*.rb')].each{ |f| require f }
+
+# require all dummy app models
 Dir[SPEC_ROOT.join('dummy_app', 'models', '*.rb')].each { |f| require f }
 
 RSpec.configure do |config|

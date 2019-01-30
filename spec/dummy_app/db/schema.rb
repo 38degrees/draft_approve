@@ -89,8 +89,8 @@ ActiveRecord::Schema.define do
     t.references :draft_transaction, null: false, index: true, foreign_key: true
     t.references :draftable,         null: true,  index: true, polymorphic: true
     t.string     :action_type,       null: false
-    t.json       :changes,           null: false
-    t.json       :options,           null: true
+    t.json       :draft_changes,     null: false
+    t.json       :draft_options,     null: true
 
     t.timestamps
   end

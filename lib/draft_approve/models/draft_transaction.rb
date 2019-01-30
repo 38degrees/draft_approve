@@ -1,5 +1,3 @@
-module DraftApprove
-  class DraftTransaction < ActiveRecord::Base
-    has_many :drafts
-  end
+class DraftTransaction < ActiveRecord::Base
+  has_many :drafts
 end

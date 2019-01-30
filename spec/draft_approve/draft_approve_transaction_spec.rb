@@ -11,7 +11,7 @@ RSpec.describe DraftApprove::DraftApproveTransaction do
         it 'creates a DraftTransaction record' do
           expect do
             subject.in_new_draft_transaction { true }
-          end.to change { DraftApprove::DraftTransaction.count }.by(1)
+          end.to change { DraftTransaction.count }.by(1)
         end
 
         it 'executes the code in the block successfully' do
@@ -29,7 +29,7 @@ RSpec.describe DraftApprove::DraftApproveTransaction do
             subject.in_new_draft_transaction do
               raise(ActiveRecord::Rollback, "Error to force a rollback")
             end
-          end.not_to change { DraftApprove::DraftTransaction.count }
+          end.not_to change { DraftTransaction.count }
         end
 
         it 'rolls back the transaction if an error is raised in the block' do
@@ -63,7 +63,7 @@ RSpec.describe DraftApprove::DraftApproveTransaction do
           rescue
             # Prevent the NestedDraftTransactionError getting thrown up to rspec
           end
-        end.not_to change { DraftApprove::DraftTransaction.count }
+        end.not_to change { DraftTransaction.count }
       end
     end
 
@@ -84,7 +84,7 @@ RSpec.describe DraftApprove::DraftApproveTransaction do
       it 'creates a DraftTransaction record' do
         expect do
           subject.in_new_draft_transaction { true }
-        end.to change { DraftApprove::DraftTransaction.count }.by(1)
+        end.to change { DraftTransaction.count }.by(1)
       end
 
       it 'executes the code in the block successfully' do
@@ -103,7 +103,7 @@ RSpec.describe DraftApprove::DraftApproveTransaction do
         it 'creates a DraftTransaction record' do
           expect do
             subject.ensure_in_draft_transaction { true }
-          end.to change { DraftApprove::DraftTransaction.count }.by(1)
+          end.to change { DraftTransaction.count }.by(1)
         end
 
         it 'executes the code in the block successfully' do
@@ -121,7 +121,7 @@ RSpec.describe DraftApprove::DraftApproveTransaction do
             subject.ensure_in_draft_transaction do
               raise(ActiveRecord::Rollback, "Error to force a rollback")
             end
-          end.not_to change { DraftApprove::DraftTransaction.count }
+          end.not_to change { DraftTransaction.count }
         end
 
         it 'rolls back the transaction if an error is raised in the block' do
@@ -146,7 +146,7 @@ RSpec.describe DraftApprove::DraftApproveTransaction do
         it 'does not create a new DraftTransaction record' do
           expect do
             subject.ensure_in_draft_transaction { true }
-          end.not_to change { DraftApprove::DraftTransaction.count }
+          end.not_to change { DraftTransaction.count }
         end
 
         it 'executes the code in the block successfully' do
@@ -171,7 +171,7 @@ RSpec.describe DraftApprove::DraftApproveTransaction do
                 raise(ActiveRecord::Rollback, "Error to force a rollback")
               end
             end
-          end.not_to change { DraftApprove::DraftTransaction.count }
+          end.not_to change { DraftTransaction.count }
         end
 
         it 'rolls back the transaction if an error is raised in the block' do
@@ -204,7 +204,7 @@ RSpec.describe DraftApprove::DraftApproveTransaction do
       it 'creates a DraftTransaction record' do
         expect do
           subject.ensure_in_draft_transaction { true }
-        end.to change { DraftApprove::DraftTransaction.count }.by(1)
+        end.to change { DraftTransaction.count }.by(1)
       end
 
       it 'executes the code in the block successfully' do

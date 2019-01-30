@@ -10,8 +10,8 @@ class CreateDraftApproveTables < ActiveRecord::Migration<%= migration_version %>
       t.references        :draft_transaction, null: false, index: true, foreign_key: true
       t.references        :draftable,         null: true,  index: true, polymorphic: true
       t.string            :action_type,       null: false
-      t.<%= json_type %>  :changes,           null: false
-      t.<%= json_type %>  :options,           null: true
+      t.<%= json_type %>  :draft_changes,     null: false
+      t.<%= json_type %>  :draft_options,     null: true
 
       t.timestamps
     end

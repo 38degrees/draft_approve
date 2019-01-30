@@ -10,7 +10,7 @@ module DraftApprove
 
       ActiveRecord::Base.transaction do
         begin
-          self.current_draft_transaction = DraftApprove::DraftTransaction.create!(user: user)
+          self.current_draft_transaction = DraftTransaction.create!(user: user)
           yield
         ensure
           self.current_draft_transaction = nil
