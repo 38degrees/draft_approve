@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 
-RSpec.describe DraftApprove::Helpers::DraftApproveTransaction do
-  let(:subject) { DraftApprove::Helpers::DraftApproveTransaction }
+RSpec.describe DraftApprove::DraftApproveTransaction do
+  let(:subject) { DraftApprove::DraftApproveTransaction }
   let(:dummy_record_name) { 'some_dummy_record' }
 
   describe '.in_new_draft_transaction' do
