@@ -1,6 +1,5 @@
 require 'spec_helper'
 
-
 RSpec.describe DraftApprove::DraftApproveTransaction do
   let(:subject) { DraftApprove::DraftApproveTransaction }
   let(:dummy_record_name) { 'some_dummy_record' }

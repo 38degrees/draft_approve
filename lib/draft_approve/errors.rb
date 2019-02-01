@@ -9,4 +9,7 @@ module DraftApprove
   class AlreadyPersistedModelError < DraftSaveError; end
   class UnpersistedModelError < DraftSaveError; end
 
+  class ChangeSerializationError < StandardError; end
+  class AssociationUnsavedError < ChangeSerializationError; end
+
 end

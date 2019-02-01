@@ -1,6 +1,6 @@
-class Membership < ActiveRecord::Base
-  has_drafts
+require_relative 'draftable'
 
+class Membership < Draftable
   belongs_to :person
   belongs_to :organization
   belongs_to :role, optional: true

@@ -28,7 +28,7 @@ module DraftApprove
       case action_type
       when DraftApprove::CREATE
         raise(DraftApprove::AlreadyPersistedModelError, "#{model} is already persisted") if model.persisted?
-        return Draft.create!(
+        model.draft = Draft.create!(
           draft_transaction: draft_transaction,
           draftable: nil,
           action_type: DraftApprove::CREATE,
@@ -36,7 +36,7 @@ module DraftApprove
         )
       when DraftApprove::UPDATE
         raise(DraftApprove::UnpersistedModelError, "#{model} isn't persisted") unless model.persisted?
-        return Draft.create!(
+        model.draft = Draft.create!(
           draft_transaction: draft_transaction,
           draftable: model,
           action_type: DraftApprove::UPDATE,
@@ -44,7 +44,7 @@ module DraftApprove
         )
       when DraftApprove::DELETE
         raise(DraftApprove::UnpersistedModelError, "#{model} isn't persisted") unless model.persisted?
-        return Draft.create!(
+        model.draft = Draft.create!(
           draft_transaction: draft_transaction,
           draftable: model,
           action_type: DraftApprove::DELETE,
@@ -53,6 +53,8 @@ module DraftApprove
       else
         raise(ArgumentError, "Unknown action_type #{action_type}")
       end
+
+      return model.draft
     end
 
     def self.serializer

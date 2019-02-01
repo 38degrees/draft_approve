@@ -1,6 +1,6 @@
-class Person < ActiveRecord::Base
-  has_drafts
+require_relative 'draftable'
 
+class Person < Draftable
   belongs_to :gender, optional: true
 
   has_many :memberships

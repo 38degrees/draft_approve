@@ -1,3 +1,4 @@
-class Role < ActiveRecord::Base
-  has_drafts
+require_relative 'draftable'
+
+class Role < Draftable
 end

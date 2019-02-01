@@ -1,3 +1,4 @@
-class ContactAddressType < ActiveRecord::Base
-  has_drafts
+require_relative 'draftable'
+
+class ContactAddressType < Draftable
 end

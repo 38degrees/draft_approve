@@ -1,6 +1,5 @@
 require 'spec_helper'
 
-
 RSpec.describe DraftApprove::DraftWriter do
   let(:subject) { DraftApprove::DraftWriter }
 
@@ -24,15 +23,19 @@ RSpec.describe DraftApprove::DraftWriter do
         it 'creates a draft with fields set correctly' do
           draft = subject.save_draft(action_type, model)
 
-          expect(draft.draftable).to be(nil)
+          expect(draft.draftable_id).to be(nil)
           expect(draft.action_type).to eq(action_type)
           expect(draft.draft_changes).to eq(changes)
         end
 
         it 'persists the draft to the database' do
           draft = subject.save_draft(action_type, model)
-
           expect(draft.persisted?).to be(true)
+        end
+
+        it 'sets the draft field on the model to the draft object' do
+          draft = subject.save_draft(action_type, model)
+          expect(model.draft).to eq(draft)
         end
       end
 
@@ -69,8 +72,12 @@ RSpec.describe DraftApprove::DraftWriter do
 
         it 'persists the draft to the database' do
           draft = subject.save_draft(action_type, model)
-
           expect(draft.persisted?).to be(true)
+        end
+
+        it 'sets the draft field on the model to the draft object' do
+          draft = subject.save_draft(action_type, model)
+          expect(model.draft).to eq(draft)
         end
       end
     end
@@ -99,8 +106,12 @@ RSpec.describe DraftApprove::DraftWriter do
 
         it 'persists the draft to the database' do
           draft = subject.save_draft(action_type, model)
-
           expect(draft.persisted?).to be(true)
+        end
+
+        it 'sets the draft field on the model to the draft object' do
+          draft = subject.save_draft(action_type, model)
+          expect(model.draft).to eq(draft)
         end
       end
     end

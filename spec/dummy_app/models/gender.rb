@@ -1,3 +1,4 @@
-class Gender < ActiveRecord::Base
-  has_drafts
+require_relative 'draftable'
+
+class Gender < Draftable
 end
