@@ -6,9 +6,7 @@ module DraftApprove
         model.class.reflect_on_all_associations(:belongs_to).each do |belongs_to_assoc|
           changes.merge!(association_change(model, belongs_to_assoc))
         end
-        changes.merge!(non_association_changes(model))
-
-        return changes
+        return changes.merge!(non_association_changes(model))
       end
 
       private
@@ -25,19 +23,17 @@ module DraftApprove
       end
 
       def self.non_association_changes(model)
-        changes = {}
         association_attribute_names = model.class.reflect_on_all_associations(:belongs_to).map do |ref|
           [ref.foreign_type, ref.foreign_key, ref.association_foreign_key]
         end.flatten.uniq.compact
 
         non_association_attribute_names = model.attribute_names - association_attribute_names
-        non_association_attribute_names.each do |attribute_name|
+
+        return non_association_attribute_names.each_with_object({}) do |attribute_name, result_hash|
           if model.public_send("#{attribute_name}_changed?")
-            changes[attribute_name] = model.public_send("#{attribute_name}_change")
+            result_hash[attribute_name] = model.public_send("#{attribute_name}_change")
           end
         end
-
-        return changes
       end
 
       # The old value of an association must be nil or point to a persisted

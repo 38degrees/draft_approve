@@ -23,14 +23,23 @@ RSpec.describe DraftApprove::DraftWriter do
         it 'creates a draft with fields set correctly' do
           draft = subject.save_draft(action_type, model)
 
+          expect(draft.draftable_type).to eq('Role')
           expect(draft.draftable_id).to be(nil)
+          expect(draft.draftable).to eq(model)
           expect(draft.action_type).to eq(action_type)
           expect(draft.draft_changes).to eq(changes)
         end
 
-        it 'persists the draft to the database' do
+        it 'persists the draft to the database with fields set correctly' do
           draft = subject.save_draft(action_type, model)
+
           expect(draft.persisted?).to be(true)
+          draft.reload
+          expect(draft.draftable_type).to eq('Role')
+          expect(draft.draftable_id).to be(nil)
+          expect(draft.draftable).to be(nil)
+          expect(draft.action_type).to eq(action_type)
+          expect(draft.draft_changes).to eq(changes)
         end
 
         it 'sets the draft field on the model to the draft object' do
@@ -65,14 +74,23 @@ RSpec.describe DraftApprove::DraftWriter do
         it 'creates a draft with fields set correctly' do
           draft = subject.save_draft(action_type, model)
 
-          expect(draft.draftable).to be(model)
+          expect(draft.draftable_type).to eq('Role')
+          expect(draft.draftable_id).to eq(model.id)
+          expect(draft.draftable).to eq(model)
           expect(draft.action_type).to eq(action_type)
           expect(draft.draft_changes).to eq(changes)
         end
 
-        it 'persists the draft to the database' do
+        it 'persists the draft to the database with fields set correctly' do
           draft = subject.save_draft(action_type, model)
+
           expect(draft.persisted?).to be(true)
+          draft.reload
+          expect(draft.draftable_type).to eq('Role')
+          expect(draft.draftable_id).to eq(model.id)
+          expect(draft.draftable).to eq(model)
+          expect(draft.action_type).to eq(action_type)
+          expect(draft.draft_changes).to eq(changes)
         end
 
         it 'sets the draft field on the model to the draft object' do
@@ -99,14 +117,23 @@ RSpec.describe DraftApprove::DraftWriter do
         it 'creates a draft with fields set correctly' do
           draft = subject.save_draft(action_type, model)
 
-          expect(draft.draftable).to be(model)
+          expect(draft.draftable_type).to eq('Role')
+          expect(draft.draftable_id).to eq(model.id)
+          expect(draft.draftable).to eq(model)
           expect(draft.action_type).to eq(action_type)
           expect(draft.draft_changes).to eq(changes)
         end
 
-        it 'persists the draft to the database' do
+        it 'persists the draft to the database with fields set correctly' do
           draft = subject.save_draft(action_type, model)
+
           expect(draft.persisted?).to be(true)
+          draft.reload
+          expect(draft.draftable_type).to eq('Role')
+          expect(draft.draftable_id).to eq(model.id)
+          expect(draft.draftable).to eq(model)
+          expect(draft.action_type).to eq(action_type)
+          expect(draft.draft_changes).to eq(changes)
         end
 
         it 'sets the draft field on the model to the draft object' do

@@ -30,7 +30,8 @@ module DraftApprove
         raise(DraftApprove::AlreadyPersistedModelError, "#{model} is already persisted") if model.persisted?
         model.draft = Draft.create!(
           draft_transaction: draft_transaction,
-          draftable: nil,
+          draftable_type: model.class,
+          draftable_id: nil,
           action_type: DraftApprove::CREATE,
           draft_changes: serializer.changes_for_model(model)
         )
