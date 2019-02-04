@@ -1,5 +1,4 @@
-require 'draft_approve/constants'
-require 'draft_approve/draft_writer'
+require 'draft_approve/persistor'
 
 module DraftApprove
   module Draftable
@@ -7,14 +6,14 @@ module DraftApprove
 
       def save_draft!
         if self.new_record?
-          DraftApprove::DraftWriter.save_draft(DraftApprove::CREATE)
+          DraftApprove::Persistor.write_draft_from_model(Draft::CREATE, self)
         else
-          DraftApprove::DraftWriter.save_draft(DraftApprove::UPDATE)
+          DraftApprove::Persistor.write_draft_from_model(Draft::UPDATE, self)
         end
       end
 
       def draft_destroy!
-        DraftApprove::DraftWriter.save_draft(DraftApprove::DELETE)
+        DraftApprove::Persistor.write_draft_from_model(Draft::DELETE, self)
       end
     end
   end

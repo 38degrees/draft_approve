@@ -658,10 +658,10 @@ RSpec.describe DraftApprove::Serializers::Json do
               }
             end
 
-            it 'raises a PriorDraftNotFoundError' do
+            it 'raises a RecordNotFound' do
               expect do
                 subject.new_values_for_draft(draft)
-              end.to raise_error(DraftApprove::PriorDraftNotFoundError)
+              end.to raise_error(ActiveRecord::RecordNotFound)
             end
           end
 
@@ -675,10 +675,10 @@ RSpec.describe DraftApprove::Serializers::Json do
               }
             end
 
-            it 'raises a PriorDraftNotFoundError' do
+            it 'raises a RecordNotFound' do
               expect do
                 subject.new_values_for_draft(draft)
-              end.to raise_error(DraftApprove::PriorDraftNotFoundError)
+              end.to raise_error(ActiveRecord::RecordNotFound)
             end
           end
         end

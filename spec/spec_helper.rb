@@ -39,8 +39,8 @@ RSpec.configure do |config|
     load SPEC_ROOT.join('dummy_app', 'db', 'schema.rb')
 
     # Clean the database before/after each test
-    # Note we don't use transasaction strategy here because many tests make
-    # use of database transactions via DraftApproveTransaction, and we want to
+    # Note we don't use transasaction strategy here because some tests make
+    # use of database transactions via DraftApprove::Transaction, and we want to
     # ensure these tests are not contained within an outer database transaction
     DatabaseCleaner.strategy = :truncation
     DatabaseCleaner.clean_with(:truncation)

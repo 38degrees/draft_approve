@@ -2,7 +2,7 @@ require 'draft_approve/errors'
 require 'draft_approve/models/draft_transaction'
 
 module DraftApprove
-  class DraftApproveTransaction
+  class Transaction
     # Start a new database Transaction, and create a new DraftTransaction to
     # wrap the commands in the block
     def self.in_new_draft_transaction(user: nil)

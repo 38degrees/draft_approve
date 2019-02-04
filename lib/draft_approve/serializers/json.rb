@@ -3,6 +3,9 @@ module DraftApprove
     class Json
       # Constants to define the hash keys used to point to associations
       # (these are similar to how ActiveRecord polymorphic associations work)
+      # IMPORTANT NOTE: These constants are written to the database, so cannot be
+      # updated without requiring a (potentially very slow) migration of all
+      # existing draft data
       TYPE = 'type'.freeze
       ID = 'id'.freeze
 
@@ -138,11 +141,10 @@ module DraftApprove
           associated_class = Object.const_get(associated_model_type)
 
           if associated_class.ancestors.include? Draft
-            # The associated draft must be in the same draft transaction as this draft
-            # Lookup in-memory as draft may have been updated in-memory to point to an ActiveRecord instance
-            associated_draft = @draft.draft_transaction.drafts.select { |draft| draft.id == associated_model_id }.first
+            # The associated class is a draft (or subclass).
+            # It must be in the same draft transaction as the draft we're getting values for.
+            associated_draft = @draft.draft_transaction.drafts.find(associated_model_id)
 
-            raise(PriorDraftNotFoundError) if associated_draft.nil?
             raise(PriorDraftNotAppliedError) if associated_draft.draftable.nil?
 
             return associated_draft.draftable

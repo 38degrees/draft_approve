@@ -1,13 +1,13 @@
-require 'draft_approve/draft_approve_transaction'
+require 'draft_approve/transaction'
 
 module DraftApprove
   module Draftable
     module ClassMethods
 
-      # draft_transaction starts a new DraftApproveTransaction to group together
-      # all draft changes which must be approved and applied together
+      # Start a new DraftTransaction to group together all the draft changes
+      # which must be approved and applied together
       def draft_transaction(user: nil)
-        DraftApprove::DraftApproveTransaction.in_new_draft_transaction(user) do
+        DraftApprove::Transaction.in_new_draft_transaction(user) do
           yield
         end
       end
