@@ -4,6 +4,7 @@ require 'draft_approve/models/draft'
 require 'draft_approve/serializers/json'
 
 module DraftApprove
+  #TODO: Rename this to 'DraftPersistor' or something, and shift the 'draft#apply_changes' method in here?
   class DraftWriter
     # This method just ensures save_draft_type_helper is wrapped in a DraftTransaction
     def self.save_draft(action_type, model)

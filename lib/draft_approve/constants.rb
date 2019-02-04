@@ -7,9 +7,4 @@ module DraftApprove
   CREATE = 'create'.freeze
   UPDATE = 'update'.freeze
   DELETE = 'delete'.freeze
-
-  # Constants to define the hash keys in drafts used to point to associations
-  # (these are similar to how ActiveRecord polymorphic associations work)
-  TYPE = 'type'.freeze
-  ID = 'id'.freeze
 end

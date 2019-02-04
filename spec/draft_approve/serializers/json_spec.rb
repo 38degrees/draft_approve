@@ -3,6 +3,9 @@ require 'spec_helper'
 RSpec.describe DraftApprove::Serializers::Json do
   let(:subject) { DraftApprove::Serializers::Json }
 
+  let(:const_type) { subject::TYPE }
+  let(:const_id)   { subject::ID }
+
   describe '.changes_for_model' do
     context 'when using a model with no associations' do
       context 'when model is already persisted' do
@@ -106,8 +109,8 @@ RSpec.describe DraftApprove::Serializers::Json do
           let(:expected_changes) do
             {
               'person' => [
-                { DraftApprove::TYPE => 'Person', DraftApprove::ID => person.id },
-                { DraftApprove::TYPE => 'Person', DraftApprove::ID => new_person.id }
+                { const_type => 'Person', const_id => person.id },
+                { const_type => 'Person', const_id => new_person.id }
               ]
             }
           end
@@ -168,8 +171,8 @@ RSpec.describe DraftApprove::Serializers::Json do
             let(:expected_changes) do
               {
                 'person' => [
-                  { DraftApprove::TYPE => 'Person', DraftApprove::ID => person.id },
-                  { DraftApprove::TYPE => 'Draft', DraftApprove::ID => new_person.draft.id }
+                  { const_type => 'Person', const_id => person.id },
+                  { const_type => 'Draft', const_id => new_person.draft.id }
                 ]
               }
             end
@@ -184,7 +187,7 @@ RSpec.describe DraftApprove::Serializers::Json do
         context 'when model is changed to reference nil' do
           let(:expected_changes) do
             {
-              'person' => [{ DraftApprove::TYPE => 'Person', DraftApprove::ID => person.id }, nil]
+              'person' => [{ const_type => 'Person', const_id => person.id }, nil]
             }
           end
 
@@ -200,12 +203,12 @@ RSpec.describe DraftApprove::Serializers::Json do
           let(:expected_changes) do
             {
               'person' => [
-                { DraftApprove::TYPE => 'Person', DraftApprove::ID => person.id },
-                { DraftApprove::TYPE => 'Person', DraftApprove::ID => new_person.id }
+                { const_type => 'Person', const_id => person.id },
+                { const_type => 'Person', const_id => new_person.id }
               ],
               'organization' => [
-                { DraftApprove::TYPE => 'Organization', DraftApprove::ID => org.id },
-                { DraftApprove::TYPE => 'Draft', DraftApprove::ID => new_org.draft.id }
+                { const_type => 'Organization', const_id => org.id },
+                { const_type => 'Draft', const_id => new_org.draft.id }
               ]
             }
           end
@@ -226,8 +229,8 @@ RSpec.describe DraftApprove::Serializers::Json do
         context 'when model has no changes since being instantiated' do
           let(:expected_changes) do
             {
-              'person' => [nil, { DraftApprove::TYPE => 'Person', DraftApprove::ID => person.id }],
-              'organization' => [nil, { DraftApprove::TYPE => 'Organization', DraftApprove::ID => org.id } ]
+              'person' => [nil, { const_type => 'Person', const_id => person.id }],
+              'organization' => [nil, { const_type => 'Organization', const_id => org.id } ]
             }
           end
 
@@ -241,8 +244,8 @@ RSpec.describe DraftApprove::Serializers::Json do
           let(:new_org)    { FactoryBot.build(:organization, :with_persisted_draft) }
           let(:expected_changes) do
             {
-              'person' => [nil, { DraftApprove::TYPE => 'Draft', DraftApprove::ID => new_person.draft.id }],
-              'organization' => [nil, { DraftApprove::TYPE => 'Draft', DraftApprove::ID => new_org.draft.id } ]
+              'person' => [nil, { const_type => 'Draft', const_id => new_person.draft.id }],
+              'organization' => [nil, { const_type => 'Draft', const_id => new_org.draft.id } ]
             }
           end
 
@@ -271,8 +274,8 @@ RSpec.describe DraftApprove::Serializers::Json do
           let(:expected_changes) do
             {
               'contactable' => [
-                { DraftApprove::TYPE => 'Person', DraftApprove::ID => person.id },
-                { DraftApprove::TYPE => 'Person', DraftApprove::ID => new_person.id }
+                { const_type => 'Person', const_id => person.id },
+                { const_type => 'Person', const_id => new_person.id }
               ]
             }
           end
@@ -333,8 +336,8 @@ RSpec.describe DraftApprove::Serializers::Json do
             let(:expected_changes) do
               {
                 'contactable' => [
-                  { DraftApprove::TYPE => 'Person', DraftApprove::ID => person.id },
-                  { DraftApprove::TYPE => 'Draft', DraftApprove::ID => new_person.draft.id }
+                  { const_type => 'Person', const_id => person.id },
+                  { const_type => 'Draft', const_id => new_person.draft.id }
                 ]
               }
             end
@@ -349,7 +352,7 @@ RSpec.describe DraftApprove::Serializers::Json do
         context 'when model is changed to reference nil' do
           let(:expected_changes) do
             {
-              'contactable' => [{ DraftApprove::TYPE => 'Person', DraftApprove::ID => person.id }, nil]
+              'contactable' => [{ const_type => 'Person', const_id => person.id }, nil]
             }
           end
 
@@ -365,12 +368,12 @@ RSpec.describe DraftApprove::Serializers::Json do
           let(:expected_changes) do
             {
               'contactable' => [
-                { DraftApprove::TYPE => 'Person', DraftApprove::ID => person.id },
-                { DraftApprove::TYPE => 'Draft', DraftApprove::ID => new_person.draft.id }
+                { const_type => 'Person', const_id => person.id },
+                { const_type => 'Draft', const_id => new_person.draft.id }
               ],
               'contact_address_type' => [
-                { DraftApprove::TYPE => 'ContactAddressType', DraftApprove::ID => contact_type.id },
-                { DraftApprove::TYPE => 'ContactAddressType', DraftApprove::ID => new_contact_type.id }
+                { const_type => 'ContactAddressType', const_id => contact_type.id },
+                { const_type => 'ContactAddressType', const_id => new_contact_type.id }
               ]
             }
           end
@@ -393,11 +396,11 @@ RSpec.describe DraftApprove::Serializers::Json do
             {
               'contactable' => [
                 nil,
-                { DraftApprove::TYPE => 'Person', DraftApprove::ID => person.id }
+                { const_type => 'Person', const_id => person.id }
               ],
               'contact_address_type' => [
                 nil,
-                { DraftApprove::TYPE => 'ContactAddressType', DraftApprove::ID => contact_type.id }
+                { const_type => 'ContactAddressType', const_id => contact_type.id }
               ],
               'value' => [nil, contact.value]
             }
@@ -415,11 +418,11 @@ RSpec.describe DraftApprove::Serializers::Json do
             {
               'contactable' => [
                 nil,
-                { DraftApprove::TYPE => 'Draft', DraftApprove::ID => new_person.draft.id }
+                { const_type => 'Draft', const_id => new_person.draft.id }
               ],
               'contact_address_type' => [
                 nil,
-                { DraftApprove::TYPE => 'Draft', DraftApprove::ID => new_contact_type.draft.id }
+                { const_type => 'Draft', const_id => new_contact_type.draft.id }
               ],
               'value' => [nil, contact.value]
             }
@@ -431,6 +434,336 @@ RSpec.describe DraftApprove::Serializers::Json do
             expect(subject.changes_for_model(contact)).to eq(expected_changes)
           end
         end
+      end
+    end
+  end
+
+  describe '.new_values_for_draft' do
+    let(:draft) { FactoryBot.create(:draft, draftable_type: model.class.name, draftable_id: model.id, draft_changes: changes) }
+
+    context 'when changes is empty' do
+      let(:model) { FactoryBot.create(:gender) }
+      let(:changes) { {} }
+      it 'returns an empty hash' do
+        expect(subject.new_values_for_draft(draft)).to eq({})
+      end
+    end
+
+    context 'when only simple attributes have changes' do
+      let(:model) { FactoryBot.create(:gender) }
+
+      context 'when a single attribute has changed' do
+        let(:new_name) { 'Some new name' }
+        let(:changes) { { 'name' => [model.name, new_name] } }
+
+        let(:expected_hash) { { 'name' => new_name } }
+
+        it 'returns a hash with the changed attribute and its expected new value' do
+          expect(subject.new_values_for_draft(draft)).to eq(expected_hash)
+        end
+      end
+
+      context 'when multiple attributes have changed' do
+        let(:new_name) { 'Some new name' }
+        let(:new_title) { 'Some new title' }
+        let(:changes) { { 'name' => [model.name, new_name], 'commonly_used_title' => [model.commonly_used_title, new_title] } }
+
+        let(:expected_hash) { { 'name' => new_name, 'commonly_used_title' => new_title } }
+
+        it 'returns a hash with the changed attributes and their expected new values' do
+          expect(subject.new_values_for_draft(draft)).to eq(expected_hash)
+        end
+      end
+
+      context 'when a single attribute has been changed to nil' do
+        let(:model) { FactoryBot.create(:gender, commonly_used_title: 'Some title') }
+        let(:changes) { { 'commonly_used_title' => [model.commonly_used_title, nil] } }
+
+        let(:expected_hash) { { 'commonly_used_title' => nil } }
+
+        it 'returns a hash with the changed attribute and a nil value' do
+          expect(subject.new_values_for_draft(draft)).to eq(expected_hash)
+        end
+      end
+    end
+
+    context 'when associations have changes' do
+      let(:model) { FactoryBot.create(:membership) }
+
+      context 'when a single association has changed' do
+        context 'when the new value is nil' do
+          let(:changes) do
+            {
+              'person' => [
+                { const_type => model.person.class.name, const_id => model.person.id },
+                nil
+              ]
+            }
+          end
+
+          let(:expected_hash) { { 'person' => nil } }
+
+          it 'returns a hash with the changed association and a nil value' do
+            expect(subject.new_values_for_draft(draft)).to eq(expected_hash)
+          end
+        end
+
+        context 'when the new value points to a non-draft object' do
+          context 'when the non-draft object exists' do
+            let(:new_person) { FactoryBot.create(:person) }
+            let(:changes) do
+              {
+                'person' => [
+                  { const_type => model.person.class.name, const_id => model.person.id },
+                  { const_type => new_person.class.name, const_id => new_person.id }
+                ]
+              }
+            end
+
+            let(:expected_hash) { { 'person' => new_person } }
+
+            it 'returns a hash with the changed association and its expected new value' do
+              expect(subject.new_values_for_draft(draft)).to eq(expected_hash)
+            end
+          end
+
+          context "when the non-draft type doesn't exist" do
+            let(:changes) do
+              {
+                'person' => [
+                  { const_type => model.person.class.name, const_id => model.person.id },
+                  { const_type => 'MyNonExistentClass', const_id => 1 }
+                ]
+              }
+            end
+
+            it 'raises a NameError' do
+              expect do
+                subject.new_values_for_draft(draft)
+              end.to raise_error(NameError)
+            end
+          end
+
+          context "when the non-draft object doesn't exist" do
+            let(:new_person) { FactoryBot.create(:person) }
+            let(:changes) do
+              {
+                'person' => [
+                  { const_type => model.person.class.name, const_id => model.person.id },
+                  { const_type => 'Person', const_id => (new_person.id + 1) } # Force the ID to be 1 greater so no record will be found
+                ]
+              }
+            end
+
+            it 'raises a RecordNotFound error' do
+              expect do
+                subject.new_values_for_draft(draft)
+              end.to raise_error(ActiveRecord::RecordNotFound)
+            end
+          end
+        end
+
+        context 'when the new value points to a draft object' do
+          let(:other_draft) { FactoryBot.create(:draft) }
+
+          context 'when the draft object exists in the same transaction' do
+            context 'when the draft points to a persisted draftable' do
+              let(:new_person) { FactoryBot.create(:person) }
+
+              let(:changes) do
+                {
+                  'person' => [
+                    { const_type => model.person.class.name, const_id => model.person.id },
+                    { const_type => other_draft.class.name, const_id => other_draft.id }
+                  ]
+                }
+              end
+
+              let(:expected_hash) { { 'person' => new_person } }
+
+              before do
+                # If we do this in a `let` it causes cyclic `let` dependencies!
+                other_draft.update!(draft_transaction: draft.draft_transaction, draftable: new_person)
+              end
+
+              it 'returns a hash with the changed association and its expected new value' do
+                expect(subject.new_values_for_draft(draft)).to eq(expected_hash)
+              end
+            end
+
+            context 'when the draft points to a non-persisted draftable' do
+              let(:new_person) { FactoryBot.build(:person) }
+
+              let(:changes) do
+                {
+                  'person' => [
+                    { const_type => model.person.class.name, const_id => model.person.id },
+                    { const_type => other_draft.class.name, const_id => other_draft.id }
+                  ]
+                }
+              end
+
+              let(:expected_hash) { { 'person' => new_person } }
+
+              before do
+                # If we do this in a `let` it causes cyclic `let` dependencies!
+                other_draft.update!(
+                  draft_transaction: draft.draft_transaction,
+                  draftable_type: 'Person',
+                  draftable_id: nil
+                )
+
+                # Doing this in the `update!` writes new_person to the DB, which we don't want for this test!
+                other_draft.draftable = new_person
+              end
+
+              it 'raises a PriorDraftNotAppliedError' do
+                expect do
+                  subject.new_values_for_draft(draft)
+                end.to raise_error(DraftApprove::PriorDraftNotAppliedError)
+              end
+            end
+
+            context 'when the draft does not point to a draftable' do
+              let(:changes) do
+                {
+                  'person' => [
+                    { const_type => model.person.class.name, const_id => model.person.id },
+                    { const_type => other_draft.class.name, const_id => other_draft.id }
+                  ]
+                }
+              end
+
+              before do
+                # If we do this in a `let` it causes cyclic `let` dependencies!
+                other_draft.update!(draft_transaction: draft.draft_transaction, draftable: nil)
+              end
+
+              it 'raises a PriorDraftNotAppliedError' do
+                expect do
+                  subject.new_values_for_draft(draft)
+                end.to raise_error(DraftApprove::PriorDraftNotAppliedError)
+              end
+            end
+          end
+
+          context 'when the draft object exists in a different transaction' do
+            let(:other_draft) { FactoryBot.create(:draft) }
+            let(:changes) do
+              {
+                'person' => [
+                  { const_type => model.person.class.name, const_id => model.person.id },
+                  { const_type => other_draft.class.name, const_id => other_draft.id }
+                ]
+              }
+            end
+
+            it 'raises a PriorDraftNotFoundError' do
+              expect do
+                subject.new_values_for_draft(draft)
+              end.to raise_error(DraftApprove::PriorDraftNotFoundError)
+            end
+          end
+
+          context 'when the draft object does not exist' do
+            let(:changes) do
+              {
+                'person' => [
+                  { const_type => model.person.class.name, const_id => model.person.id },
+                  { const_type => 'Draft', const_id => nil }
+                ]
+              }
+            end
+
+            it 'raises a PriorDraftNotFoundError' do
+              expect do
+                subject.new_values_for_draft(draft)
+              end.to raise_error(DraftApprove::PriorDraftNotFoundError)
+            end
+          end
+        end
+      end
+
+      context 'when multiple associations have changed' do
+        let(:new_person) { FactoryBot.create(:person) }
+        let(:new_org)    { FactoryBot.create(:organization) }
+        let(:new_role)   { FactoryBot.create(:role) }
+
+        let(:new_person_draft) { FactoryBot.create(:draft, draftable: new_person) }
+        let(:new_org_draft)    { FactoryBot.create(:draft, draftable: new_org) }
+
+        let(:changes) do
+          {
+            'person' => [
+              { const_type => model.person.class.name, const_id => model.person.id },
+              { const_type => new_person_draft.class.name, const_id => new_person_draft.id }
+            ],
+            'organization' => [
+              { const_type => model.organization.class.name, const_id => model.organization.id },
+              { const_type => new_org_draft.class.name, const_id => new_org_draft.id }
+            ],
+            'role' => [
+              { const_type => nil, const_id => nil },
+              { const_type => new_role.class.name, const_id => new_role.id }
+            ]
+          }
+        end
+
+        let(:expected_hash) { { 'person' => new_person, 'organization' => new_org, 'role' => new_role } }
+
+        before do
+          # If we do this in a `let` it causes cyclic `let` dependencies!
+          new_person_draft.update!(draft_transaction: draft.draft_transaction)
+          new_org_draft.update!(draft_transaction: draft.draft_transaction)
+        end
+
+        it 'returns a hash with the changed associations and all expected new values' do
+          expect(subject.new_values_for_draft(draft)).to eq(expected_hash)
+        end
+      end
+    end
+
+    # Test a model with normal attribute, non-polymorphic association, polymorphic association
+    context 'when a combination of attribute types have changes' do
+      let(:model) { FactoryBot.create(:contact_address) }
+
+      let(:new_contactable) { FactoryBot.create(:membership) }
+      let(:new_label)       { "Some New Label" }
+      let(:new_value)       { "Some New Value" }
+
+      let(:new_contactable_draft) { FactoryBot.create(:draft, draftable: new_contactable) }
+
+      let(:changes) do
+        {
+          'contact_address_type' => [
+            { const_type => model.contact_address_type.class.name, const_id => model.contact_address_type.id },
+            nil
+          ],
+          'contactable' => [
+            { const_type => model.contactable.class.name, const_id => model.contactable.id },
+            { const_type => new_contactable_draft.class.name, const_id => new_contactable_draft.id }
+          ],
+          'label' => [nil, new_label],
+          'value' => [model.value, new_value]
+        }
+      end
+
+      let(:expected_hash) do
+        {
+          'contact_address_type' => nil,
+          'contactable' => new_contactable,
+          'label' => new_label,
+          'value' => new_value
+        }
+      end
+
+      before do
+        # If we do this in a `let` it causes cyclic `let` dependencies!
+        new_contactable_draft.update!(draft_transaction: draft.draft_transaction)
+      end
+
+      it 'returns a hash with the changed associations and all expected new values' do
+        expect(subject.new_values_for_draft(draft)).to eq(expected_hash)
       end
     end
   end
