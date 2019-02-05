@@ -6,4 +6,8 @@ FactoryBot.define do
     draft_changes { {} }
     draft_options { {} }
   end
+
+  trait :skip_validations do
+    to_create {|instance| instance.save(validate: false)}
+  end
 end

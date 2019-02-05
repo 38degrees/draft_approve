@@ -112,6 +112,8 @@ module DraftApprove
       end
 
       class JsonDeserializer
+        # TODO: Refactor this so it just takes the draft_changes and the draft_transaction?
+        # Probably shouldn't be looking at other attributes of the draft here, so better not to pass the object in at all?
         def initialize(draft)
           @draft = draft
         end

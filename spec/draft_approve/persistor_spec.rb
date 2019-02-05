@@ -3,17 +3,17 @@ require 'spec_helper'
 RSpec.describe DraftApprove::Persistor do
   let(:subject) { DraftApprove::Persistor }
 
-  # The model & changes we use here are largely irrelevant to the tests, we just
-  # need a model to create drafts of, and some known 'changes' that should get
-  # saved to the database
-  let(:model)   { FactoryBot.create(:role) }
-  let(:changes) { { 'some_field' => ['old_value', 'new_value'] } }
-
-  before(:each) do
-    allow(DraftApprove::Serializers::Json).to receive(:changes_for_model).with(model).and_return(changes)
-  end
-
   describe '.write_draft_from_model' do
+    # The model & changes we use here are largely irrelevant to the tests, we just
+    # need a model to create drafts of, and some known 'changes' that should get
+    # saved to the database
+    let(:model)   { FactoryBot.create(:role) }
+    let(:changes) { { 'some_field' => ['old_value', 'new_value'] } }
+
+    before(:each) do
+      allow(DraftApprove::Serializers::Json).to receive(:changes_for_model).with(model).and_return(changes)
+    end
+
     context 'when saving a draft with action_type CREATE' do
       let(:action_type) { Draft::CREATE }
 
@@ -178,6 +178,182 @@ RSpec.describe DraftApprove::Persistor do
       it 'raises ArgumentError' do
         expect do
           subject.write_draft_from_model(nil, model)
+        end.to raise_error(ArgumentError)
+      end
+    end
+  end
+
+  describe '.write_model_from_draft' do
+    # The model / changes / options we use here are largely irrelevant to the tests,
+    # we just need a model to be created/updated/deleted, and a known Serializer class
+    # that will be called with the draft - we mock out the response so it returns the
+    # expected new values
+    let(:model)   { FactoryBot.create(:contact_address) }
+    let(:options) { { DraftApprove::Persistor::SERIALIZER_CLASS => DraftApprove::Serializers::Json.name } }
+
+    let(:new_address_type) { FactoryBot.create(:contact_address_type) }
+    let(:new_contactable)  { FactoryBot.create(:organization) }
+    let(:new_label)        { 'a label for my contactable' }
+    let(:new_value)        { 'a value for my contactable' }
+    let(:new_values_hash) do
+      {
+        'contact_address_type' => new_address_type,
+        'contactable' => new_contactable,
+        'label' => new_label,
+        'value' => new_value
+      }
+    end
+
+    before(:each) do
+      allow(DraftApprove::Serializers::Json).to receive(:new_values_for_draft).with(draft).and_return(new_values_hash)
+    end
+
+    context 'when writing a model from a CREATE draft' do
+      let(:draft) do
+        FactoryBot.create(
+          :draft,
+          draftable_type: model.class.name,
+          draftable_id: nil,
+          action_type: Draft::CREATE,
+          draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
+          draft_options: options
+        )
+      end
+
+      it 'writes a new model to the database' do
+        expect { subject.write_model_from_draft(draft) }.to change { model.class.count }.by(1)
+      end
+
+      it 'returns the model with the expected values' do
+        new_model = subject.write_model_from_draft(draft)
+        expect(new_model.contact_address_type).to eq(new_address_type)
+        expect(new_model.contactable).to eq(new_contactable)
+        expect(new_model.label).to eq(new_label)
+        expect(new_model.value).to eq(new_value)
+      end
+
+      it 'writes the expected values to the database' do
+        new_model = subject.write_model_from_draft(draft)
+        new_model.reload
+        expect(new_model.contact_address_type).to eq(new_address_type)
+        expect(new_model.contactable).to eq(new_contactable)
+        expect(new_model.label).to eq(new_label)
+        expect(new_model.value).to eq(new_value)
+      end
+    end
+
+    context 'when writing a model from an UPDATE draft' do
+      let(:draft) do
+        FactoryBot.create(
+          :draft,
+          draftable: model,
+          action_type: Draft::UPDATE,
+          draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
+          draft_options: options
+        )
+      end
+
+      it 'does not write a new model to the database' do
+        expect { subject.write_model_from_draft(draft) }.not_to change { model.class.count }
+      end
+
+      it 'returns the model with the expected values' do
+        changed_model = subject.write_model_from_draft(draft)
+        expect(changed_model.contact_address_type).to eq(new_address_type)
+        expect(changed_model.contactable).to eq(new_contactable)
+        expect(changed_model.label).to eq(new_label)
+        expect(changed_model.value).to eq(new_value)
+      end
+
+      it 'writes the expected values to the database' do
+        changed_model = subject.write_model_from_draft(draft)
+        changed_model.reload
+        expect(changed_model.contact_address_type).to eq(new_address_type)
+        expect(changed_model.contactable).to eq(new_contactable)
+        expect(changed_model.label).to eq(new_label)
+        expect(changed_model.value).to eq(new_value)
+      end
+    end
+
+    context 'when writing a model from a DELETE draft' do
+      let(:draft) do
+        FactoryBot.create(
+          :draft,
+          draftable: model,
+          action_type: Draft::DELETE,
+          draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
+          draft_options: options
+        )
+      end
+
+      it 'deletes a model from the database' do
+        expect { subject.write_model_from_draft(draft) }.to change { model.class.count }.by(-1)
+      end
+
+      it 'returns the destroyed model' do
+        changed_model = subject.write_model_from_draft(draft)
+        expect(changed_model.destroyed?).to be(true)
+      end
+
+      it 'deletes the correct model from the database' do
+        changed_model = subject.write_model_from_draft(draft)
+
+        expect do
+          changed_model.reload
+        end.to raise_error(ActiveRecord::RecordNotFound)
+      end
+    end
+
+    context 'when writing a model from a draft with no serializer' do
+      let(:draft) do
+        FactoryBot.create(
+          :draft,
+          draftable: model,
+          action_type: Draft::UPDATE,
+          draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
+          draft_options: {}   # No options, no serializer set
+        )
+      end
+
+      it 'uses the default serializer class' do
+        expect(DraftApprove::Serializers::Json).to receive(:new_values_for_draft).with(draft).and_return(new_values_hash)
+        subject.write_model_from_draft(draft)
+      end
+    end
+
+    context 'when writing a model from a draft with an unknown serializer' do
+      let(:draft) do
+        FactoryBot.create(
+          :draft,
+          draftable: model,
+          action_type: Draft::UPDATE,
+          draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
+          draft_options: { DraftApprove::Persistor::SERIALIZER_CLASS => 'DraftApprove::Serializers::NonExistantSerializer' }
+        )
+      end
+
+      it 'raises a NameError' do
+        expect do
+          subject.write_model_from_draft(draft)
+        end.to raise_error(NameError)
+      end
+    end
+
+    context 'when writing a model from a draft with an unknown action_type' do
+      let(:draft) do
+        FactoryBot.create(
+          :draft,
+          :skip_validations,
+          draftable: model,
+          action_type: 'NonExistantActionType',
+          draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
+          draft_options: options
+        )
+      end
+
+      it 'raises an ArgumentError' do
+        expect do
+          subject.write_model_from_draft(draft)
         end.to raise_error(ArgumentError)
       end
     end

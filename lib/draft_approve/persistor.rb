@@ -44,31 +44,39 @@ module DraftApprove
           draftable_id: draftable_id,
           action_type: action_type,
           draft_changes: serializer_class.changes_for_model(model),
-          draft_options: { SERIALIZER_CLASS => serializer_class }
+          draft_options: { SERIALIZER_CLASS => serializer_class.name }
         )
       end
     end
 
     def self.write_model_from_draft(draft)
-      serializer_class_name = draft.draft_options[SERIALIZER_CLASS]
-      serializer = Object.const_get(serializer_class)
-      new_values_hash = serializer.new_values_for_draft(self)
-
-      case action_type
-      when Draft::CREATE
-        raise(DraftApprove::NoDraftableError, "No draftable_type for #{draft}") if draftable_type.blank?
-        Object.const_get(draftable_type).create!(new_values_hash) # TODO: allow options for specifying method here (eg. find_or_create_by!)
-
-      when Draft::UPDATE
-        raise(DraftApprove::NoDraftableError, "No draftable for #{draft}") if draftable.blank?
-        draftable.update!(new_values_hash)
-
-      when Draft::DELETE
-        raise(DraftApprove::NoDraftableError, "No draftable for #{draft}") if draftable.blank?
-        draftable.destroy!
-
+      if serializer_class_name = draft.draft_options[SERIALIZER_CLASS]
+        serializer = Object.const_get(serializer_class_name)
       else
-        raise(ArgumentError, "Unknown action_type #{action_type}")
+        serializer = serializer_class # Use default serializer
+      end
+      new_values_hash = serializer.new_values_for_draft(draft)
+
+      case draft.action_type
+      when Draft::CREATE
+        raise(DraftApprove::NoDraftableError, "No draftable_type for #{draft}") if draft.draftable_type.blank?
+
+        model_class = Object.const_get(draft.draftable_type)
+        return model_class.create!(new_values_hash) # TODO: allow options for specifying method here (eg. find_or_create_by!)
+      when Draft::UPDATE
+        raise(DraftApprove::NoDraftableError, "No draftable for #{draft}") if draft.draftable.blank?
+
+        model = draft.draftable
+        model.update!(new_values_hash)
+        return model
+      when Draft::DELETE
+        raise(DraftApprove::NoDraftableError, "No draftable for #{draft}") if draft.draftable.blank?
+
+        model = draft.draftable
+        model.destroy!
+        return model
+      else
+        raise(ArgumentError, "Unknown action_type #{draft.action_type}")
       end
     end
 
