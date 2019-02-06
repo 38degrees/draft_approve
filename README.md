@@ -115,6 +115,10 @@ draft.draft_transaction.approve_changes
 draft_transaction.approve_changes
 ```
 
+### More examples
+
+Further examples can be seen in the [integration tests](tree/master/spec/integration).
+
 ## Alternative Drafting Gems
 
 * [Drafting](https://github.com/ledermann/drafting)
