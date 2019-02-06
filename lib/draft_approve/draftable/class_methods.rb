@@ -7,7 +7,7 @@ module DraftApprove
       # Start a new DraftTransaction to group together all the draft changes
       # which must be approved and applied together
       def draft_transaction(user: nil)
-        DraftApprove::Transaction.in_new_draft_transaction(user) do
+        DraftApprove::Transaction.in_new_draft_transaction(user: user) do
           yield
         end
       end

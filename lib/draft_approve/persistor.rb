@@ -61,7 +61,9 @@ module DraftApprove
         raise(DraftApprove::NoDraftableError, "No draftable_type for #{draft}") if draft.draftable_type.blank?
 
         model_class = Object.const_get(draft.draftable_type)
-        return model_class.create!(new_values_hash) # TODO: allow options for specifying method here (eg. find_or_create_by!)
+        model = model_class.create!(new_values_hash) # TODO: allow options for specifying method here (eg. find_or_create_by!)
+        draft.update!(draftable: model)
+        return model
       when Draft::UPDATE
         raise(DraftApprove::NoDraftableError, "No draftable for #{draft}") if draft.draftable.blank?
 

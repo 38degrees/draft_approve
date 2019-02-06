@@ -224,6 +224,11 @@ RSpec.describe DraftApprove::Persistor do
         expect { subject.write_model_from_draft(draft) }.to change { model.class.count }.by(1)
       end
 
+      it 'updates the draft in the database to reference the newly created model' do
+        new_model = subject.write_model_from_draft(draft)
+        expect(draft.reload.draftable).to eq(new_model)
+      end
+
       it 'returns the model with the expected values' do
         new_model = subject.write_model_from_draft(draft)
         expect(new_model.contact_address_type).to eq(new_address_type)

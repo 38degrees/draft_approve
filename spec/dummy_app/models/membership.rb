@@ -5,5 +5,5 @@ class Membership < Draftable
   belongs_to :organization
   belongs_to :role, optional: true
 
-  has_many :contact_addresses
+  has_many :contact_addresses, as: :contactable
 end

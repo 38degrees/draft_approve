@@ -2,5 +2,5 @@ require_relative 'draftable'
 
 class Organization < Draftable
   has_many :memberships
-  has_many :contact_addresses
+  has_many :contact_addresses, as: :contactable
 end
