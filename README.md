@@ -10,6 +10,7 @@ The specific features / functionality offered by DraftApprove are:
 * No updates are required to your existing ActiveRecord queries or raw SQL queries
 * It is possible to save drafts of new records, save draft changes to existing records, and save draft deletions of records
 * Multiple related draft changes (new records, updates, deletions) may be grouped together in a 'Draft Transaction' which must then be approved or rejected as a whole
+** This includes being able to save a draft of a model which references an unsaved model - as long as that unsaved model itself has a persisted draft
 * Each model may only have one pending draft at a time
 
 ## Installation
