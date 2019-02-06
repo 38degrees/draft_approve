@@ -2,9 +2,9 @@
 
 DraftApprove is a Ruby gem which lets you save draft changes of your ActiveRecord models to your database. It allows grouping of related changes into a 'Draft Transaction' which must be approved or rejected as a whole, rather than allowing individual draft changes to be applied independently.
 
-## Alternative Drafting Gems
+There are a number of other similar Ruby gems available for drafting changes to ActiveRecord models. Depending upon your projects needs, another gem may be more suitable. See the [Alternative Drafting Gems](#alternative_drafting_gems) section for full details.
 
-There are a number of other similar Ruby gems available for drafting changes to ActiveRecord models. Depending upon your projects needs, another gem may be more suitable. The specific features / functionality offered by DraftApprove are:
+The specific features / functionality offered by DraftApprove are:
 
 * No changes are needed to your existing database tables
 * No updates are required to your existing ActiveRecord queries or raw SQL queries
@@ -38,6 +38,20 @@ $ rails db:migrate
 ## Usage
 
 TODO: Write usage instructions here
+
+## Alternative Drafting Gems
+
+* [Drafting](https://github.com/ledermann/drafting)
+* [DraftPunk](https://github.com/stevehodges/draftpunk)
+* [Draftsman](https://github.com/jmfederico/draftsman)
+
+**DraftPunk** and **Draftsman** both require changes to your existing database tables. In itself, this is not a problem, however this also _potentially_ requires changes to your ActiveRecord Queries and any raw SQL you may be executing in order to ensure draft models or draft changes are not accidentally returned by queries or shown to end users.
+
+This problem can be avoided using default scopes on your models. This may be a suitable solution for new projects, or projects which don't utilise much or any raw SQL queries.
+
+See the [DraftPunk documentation](https://github.com/stevehodges/draftpunk#what-about-the-rest-of-the-application-people-are-seeing-draft-businesses) and [Draftsman documentation](https://github.com/jmfederico/draftsman#drafted-item-scopes) on using scopes.
+
+**Drafting** does not require any modifications to existing tables, and therefore has no risk of existing queries accidentally returning draft data. However, [it only allows saving drafts on records which are not persisted yet](https://github.com/ledermann/drafting#hints). This may be suitable for projects where it is not necessary to create and approve draft updates to objects.
 
 ## Development
 
