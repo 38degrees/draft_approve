@@ -28,13 +28,12 @@ Or install it yourself as:
 
     $ gem install draft_approve
 
-Once installed, you must generate the migration to create the required draft tables in your database:
+Once installed, you must generate the migration to create the required draft tables in your database, and run the migration:
 
-    $ rails generate draft_approve:migration
-
-And finally run the new migration:
-
-    $ rails db:migrate
+```
+$ rails generate draft_approve:migration
+$ rails db:migrate
+```
 
 ## Usage
 
