@@ -133,6 +133,8 @@ See the [DraftPunk documentation](https://github.com/stevehodges/draftpunk#what-
 
 **Drafting** does not require any modifications to existing tables, and therefore has no risk of existing queries accidentally returning draft data. However, [it only allows saving drafts on records which are not persisted yet](https://github.com/ledermann/drafting#hints). This may be suitable for projects where it is not necessary to create and approve draft updates to objects.
 
+All the above gem also have other specific features / advantages unique to them, so before selecting the most suitable gem for your needs, it is recommended you read their documentation and trial them to find which is most suited to your project requirements.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
