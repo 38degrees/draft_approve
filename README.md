@@ -88,18 +88,18 @@ For example:
 
 ```
 draft_transaction = Person.draft_transaction do
-  person = Person.find(1)
-  person.name = 'update person name'
+  person = Person.new(name: 'new person name')
   person.save_draft!
   
-  contact_address = person.contact_addresses.first
-  contact_address.draft_destroy!
+  existing_contact_address = ContactAddress.find(1)
+  existing_contact_address.person = person
+  existing_contact_address.save_draft!
   
-  ContactAddress.new(person: person, label: 'email', value: 'email@test.com').save_draft!
+  ContactAddress.find(2).draft_destroy!
 end
 ```
 
-This would create 3 drafts (one to update the person, one to delete the existing contact address, and one to create a new contact address). These must all be applied together, or all be rejected.
+This would create 3 drafts (one to create a new person, one to update an existing contact address, and one to delete a different contact address). These must all be applied together, or all be rejected.
 
 ### Approve drafts
 
