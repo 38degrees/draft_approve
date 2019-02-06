@@ -37,7 +37,83 @@ $ rails db:migrate
 
 ## Usage
 
-TODO: Write usage instructions here
+### Make your Models draftable
+
+Add `has_drafts` to all models you'd like to be draftable. For example:
+
+```
+# app/models/person.rb
+class Person < ActiveRecord::Base
+  has_many :contact_addresses
+
+  has_drafts
+end
+
+# app/models/contact_address.rb
+class ContactAddress < ActiveRecord::Base
+  belongs_to :person
+
+  has_drafts
+end
+```
+
+### Create a draft for a single object
+
+Call `save_draft!` to save a draft of a new model, or save draft changes to an existing model.
+
+Call `draft_destroy!` to draft the deletion of the model.
+
+For example:
+
+```
+# Save draft of a new model
+person = Person.new(name: 'new person')
+draft = person.save_draft!
+
+# Save draft changes to an existing person
+person = Person.find(1)
+person.name = 'update existing person'
+draft = person.save_draft!
+
+# Draft delete an existing person
+person = Person.find(2)
+draft = person.draft_destroy!
+```
+
+### Create multiple related drafts
+
+If you want to ensure multiple related changes are all approved, or all rejected, as a single block, use a Draft Transaction. You do this by calling the `draft_transaction` method on any draftable model class, and passing it a block where all your drafts are saved. You use the same `save_draft!` and `draft_destroy!` methods within the Draft Transaction.
+
+For example:
+
+```
+draft_transaction = Person.draft_transaction do
+  person = Person.find(1)
+  person.name = 'update person name'
+  person.save_draft!
+  
+  contact_address = person.contact_addresses.first
+  contact_address.draft_destroy!
+  
+  ContactAddress.new(person: person, label: 'email', value: 'email@test.com').save_draft!
+end
+```
+
+This would create 3 drafts (one to update the person, one to delete the existing contact address, and one to create a new contact address). These must all be applied together, or all be rejected.
+
+### Approve drafts
+
+Regardless of how a draft was created, a Draft Transaction is always created, and the Draft Transaction is what needs to be approved. This will apply the changes in all drafts within the Draft Transaction (which may only be one draft).
+
+For example:
+
+```
+# If you have reference to a Draft object
+draft.draft_transaction.approve_changes
+
+# If you have reference to a DraftTransaction object
+draft_transaction.approve_changes
+```
 
 ## Alternative Drafting Gems
 
