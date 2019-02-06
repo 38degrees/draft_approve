@@ -53,7 +53,7 @@ RSpec.configure do |config|
   end
 end
 
-# May need this to teardown non-in-memory databases in future...
+# May need this to teardown non-in-memory databases in an after(:suite) step in future...
 def database_teardown
   conn = ActiveRecord::Base.connection
   conn.tables.each do |table_name|

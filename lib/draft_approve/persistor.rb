@@ -13,9 +13,8 @@ module DraftApprove
       DraftApprove::Transaction.ensure_in_draft_transaction do
         raise(ArgumentError, 'model argument must be present') unless model.present?
 
-        # Now we're in a Transaction, reload the model to force going back to the
-        # DB, to ensure we don't get multiple drafts for the same object
-        if model.persisted? && model.reload.draft.present?
+        # Now we're in a Transaction, ensure we don't get multiple drafts for the same object
+        if model.persisted? && Draft.where(draftable: model).count > 0
           raise(DraftApprove::ExistingDraftError, "#{model} has existing draft")
         end
 
