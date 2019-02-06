@@ -117,7 +117,7 @@ draft_transaction.approve_changes
 
 ### More examples
 
-Further examples can be seen in the [integration tests](tree/master/spec/integration).
+Further examples can be seen in the [integration tests](spec/integration).
 
 ## Alternative Drafting Gems
 
