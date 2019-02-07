@@ -72,16 +72,16 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  appraisal
+  appraisal (~> 2.2)
   bundler (~> 1.17)
-  codecov
-  database_cleaner
+  codecov (~> 0.1)
+  database_cleaner (~> 1.7)
   draft_approve!
-  factory_bot
-  pry
+  factory_bot (~> 4.11)
+  pry (~> 0.12)
   rake (~> 10.0)
   rspec (~> 3.0)
-  sqlite3
+  sqlite3 (~> 1.3)
 
 BUNDLED WITH
    1.17.0
