@@ -29,7 +29,7 @@ module DraftApprove
       end
 
       def json_type
-        if ActiveRecord::Base.connection.adapter_name.downcase.to_sym == :postgresql
+        if [:postgresql, :postgis].include? ActiveRecord::Base.connection.adapter_name.downcase.to_sym
           'jsonb'
         else
           'json'
