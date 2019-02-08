@@ -110,10 +110,24 @@ For example:
 
 ```
 # If you have reference to a Draft object
-draft.draft_transaction.approve_changes
+draft.draft_transaction.approve_changes(reviewed_by: 'my_username', review_reason: 'Looks Good!')
 
 # If you have reference to a DraftTransaction object
-draft_transaction.approve_changes
+draft_transaction.approve_changes(reviewed_by: 'my_username', review_reason: 'Looks Good!')
+```
+
+### Reject drafts
+
+This will reject all changes in all drafts within the Draft Transaction (which may only be one draft).
+
+For example:
+
+```
+# If you have reference to a Draft object
+draft.draft_transaction.reject_changes(reviewed_by: 'my_username', review_reason: 'Nope!')
+
+# If you have reference to a DraftTransaction object
+draft_transaction.reject_changes(reviewed_by: 'my_username', review_reason: 'Nope!')
 ```
 
 ### More examples
@@ -135,6 +149,12 @@ See the [DraftPunk documentation](https://github.com/stevehodges/draftpunk#what-
 **Drafting** does not require any modifications to existing tables, and therefore has no risk of existing queries accidentally returning draft data. However, [it only allows saving drafts on records which are not persisted yet](https://github.com/ledermann/drafting#hints). This may be suitable for projects where it is not necessary to create and approve draft updates to objects.
 
 All the above gem also have other specific features / advantages unique to them, so before selecting the most suitable gem for your needs, it is recommended you read their documentation and trial them to find which is most suited to your project requirements.
+
+## License
+
+[MIT License](LICENSE.md)
+
+Copyright (c) 2019, 38 Degrees Ltd
 
 ## Development
 
