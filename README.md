@@ -110,10 +110,24 @@ For example:
 
 ```
 # If you have reference to a Draft object
-draft.draft_transaction.approve_changes
+draft.draft_transaction.approve_changes(reviewed_by: 'my_username', review_reason: 'Looks Good!')
 
 # If you have reference to a DraftTransaction object
-draft_transaction.approve_changes
+draft_transaction.approve_changes(reviewed_by: 'my_username', review_reason: 'Looks Good!')
+```
+
+### Reject drafts
+
+This will reject all changes in all drafts within the Draft Transaction (which may only be one draft).
+
+For example:
+
+```
+# If you have reference to a Draft object
+draft.draft_transaction.reject_changes(reviewed_by: 'my_username', review_reason: 'Nope!')
+
+# If you have reference to a DraftTransaction object
+draft_transaction.reject_changes(reviewed_by: 'my_username', review_reason: 'Nope!')
 ```
 
 ### More examples
