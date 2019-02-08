@@ -136,6 +136,12 @@ See the [DraftPunk documentation](https://github.com/stevehodges/draftpunk#what-
 
 All the above gem also have other specific features / advantages unique to them, so before selecting the most suitable gem for your needs, it is recommended you read their documentation and trial them to find which is most suited to your project requirements.
 
+## License
+
+[MIT License](LICENSE.md)
+
+Copyright (c) 2019, 38 Degrees Ltd
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
