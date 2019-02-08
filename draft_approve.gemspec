@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.version       = DraftApprove::VERSION
   spec.authors       = ['Andrew Sibley']
   spec.email         = ['andrew.s@38degrees.org.uk']
-
+  spec.license       = 'MIT'
   spec.homepage      = 'https://github.com/38dgs/draft_approve'
   spec.summary       = %q{Save drafts of ActiveRecord models & approve them to apply the changes.}
   spec.description   = %q{
