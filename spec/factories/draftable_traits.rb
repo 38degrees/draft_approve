@@ -11,7 +11,7 @@ FactoryBot.define do
       # Once the Draft instantiated, manually setup the references between the
       # draftable object and the draft object
       draft.draftable = model
-      model.draft = draft
+      model.draft_pending_approval = draft
     end
   end
 
@@ -25,7 +25,7 @@ FactoryBot.define do
       # Once the Draft instantiated, manually setup the references between the
       # draftable object and the draft object
       draft.draftable = model
-      model.draft = draft
+      model.draft_pending_approval = draft
     end
   end
 end

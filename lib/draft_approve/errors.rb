@@ -13,6 +13,7 @@ module DraftApprove
   class AssociationUnsavedError < ChangeSerializationError; end
 
   class ApplyDraftChangesError < StandardError; end
+  class NoDraftableError < ApplyDraftChangesError; end
   class PriorDraftNotAppliedError < ApplyDraftChangesError; end
 
 end

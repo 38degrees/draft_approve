@@ -13,6 +13,11 @@ RSpec.describe DraftApprove::Transaction do
           end.to change { DraftTransaction.count }.by(1)
         end
 
+        it 'creates a DraftTransaction with the correct status' do
+          draft_transaction = subject.in_new_draft_transaction { true }
+          expect(draft_transaction.status).to eq(DraftTransaction::PENDING_APPROVAL)
+        end
+
         it 'executes the code in the block successfully' do
           expect do
             subject.in_new_draft_transaction do
@@ -230,21 +235,21 @@ RSpec.describe DraftApprove::Transaction do
 
     context 'when a draft transaction already exists in this thread' do
       around(:each) do |example|
-        subject.in_new_draft_transaction(user: correct_draft_transaction_user) do
+        subject.in_new_draft_transaction(created_by: correct_draft_transaction_user) do
           example.run
         end
       end
 
       it 'returns the correct draft transaction' do
         draft_transaction = subject.current_draft_transaction!
-        expect(draft_transaction.user).to eq(correct_draft_transaction_user)
+        expect(draft_transaction.created_by).to eq(correct_draft_transaction_user)
       end
     end
 
     context 'when a draft transaction exists in another thread' do
       around(:each) do |example|
         other_thread = Fiber.new do
-          subject.in_new_draft_transaction(user: other_draft_transaction_user) do
+          subject.in_new_draft_transaction(created_by: other_draft_transaction_user) do
             # Wait inside the transaction until other_thread.resume is called
             Fiber.yield
           end
@@ -265,14 +270,14 @@ RSpec.describe DraftApprove::Transaction do
     context 'when a draft transaction exists in this thread and another thread' do
       around(:each) do |example|
         other_thread = Fiber.new do
-          subject.in_new_draft_transaction(user: other_draft_transaction_user) do
+          subject.in_new_draft_transaction(created_by: other_draft_transaction_user) do
             # Wait inside the transaction until other_thread.resume is called
             Fiber.yield
           end
         end
 
         other_thread.resume # run other_thread up to Fiber.yield...
-        subject.in_new_draft_transaction(user: correct_draft_transaction_user) do
+        subject.in_new_draft_transaction(created_by: correct_draft_transaction_user) do
           example.run
         end
         other_thread.resume # wake up other_thread so it can complete...
@@ -280,7 +285,7 @@ RSpec.describe DraftApprove::Transaction do
 
       it 'returns the correct draft transaction' do
         draft_transaction = subject.current_draft_transaction!
-        expect(draft_transaction.user).to eq(correct_draft_transaction_user)
+        expect(draft_transaction.created_by).to eq(correct_draft_transaction_user)
       end
     end
   end

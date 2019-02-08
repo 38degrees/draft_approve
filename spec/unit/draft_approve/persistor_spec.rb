@@ -14,7 +14,7 @@ RSpec.describe DraftApprove::Persistor do
       allow(DraftApprove::Serializers::Json).to receive(:changes_for_model).with(model).and_return(changes)
     end
 
-    context 'when saving a draft with action_type CREATE' do
+    context 'when saving a draft with draft_action_type CREATE' do
       let(:action_type) { Draft::CREATE }
 
       context "when the model hasn't already been persisted" do
@@ -26,7 +26,7 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_type).to eq('Role')
           expect(draft.draftable_id).to be(nil)
           expect(draft.draftable).to eq(model)
-          expect(draft.action_type).to eq(action_type)
+          expect(draft.draft_action_type).to eq(action_type)
           expect(draft.draft_changes).to eq(changes)
         end
 
@@ -38,13 +38,13 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_type).to eq('Role')
           expect(draft.draftable_id).to be(nil)
           expect(draft.draftable).to be(nil)
-          expect(draft.action_type).to eq(action_type)
+          expect(draft.draft_action_type).to eq(action_type)
           expect(draft.draft_changes).to eq(changes)
         end
 
         it 'sets the draft field on the model to the draft object' do
           draft = subject.write_draft_from_model(action_type, model)
-          expect(model.draft).to eq(draft)
+          expect(model.draft_pending_approval).to eq(draft)
         end
       end
 
@@ -57,7 +57,7 @@ RSpec.describe DraftApprove::Persistor do
       end
     end
 
-    context 'when saving a draft with action_type UPDATE' do
+    context 'when saving a draft with draft_action_type UPDATE' do
       let(:action_type) { Draft::UPDATE }
 
       context "when the model hasn't already been persisted" do
@@ -77,7 +77,7 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_type).to eq('Role')
           expect(draft.draftable_id).to eq(model.id)
           expect(draft.draftable).to eq(model)
-          expect(draft.action_type).to eq(action_type)
+          expect(draft.draft_action_type).to eq(action_type)
           expect(draft.draft_changes).to eq(changes)
         end
 
@@ -89,18 +89,18 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_type).to eq('Role')
           expect(draft.draftable_id).to eq(model.id)
           expect(draft.draftable).to eq(model)
-          expect(draft.action_type).to eq(action_type)
+          expect(draft.draft_action_type).to eq(action_type)
           expect(draft.draft_changes).to eq(changes)
         end
 
         it 'sets the draft field on the model to the draft object' do
           draft = subject.write_draft_from_model(action_type, model)
-          expect(model.draft).to eq(draft)
+          expect(model.draft_pending_approval).to eq(draft)
         end
       end
     end
 
-    context 'when saving a draft with action_type DELETE' do
+    context 'when saving a draft with draft_action_type DELETE' do
       let(:action_type) { Draft::DELETE }
 
       context "when the model hasn't already been persisted" do
@@ -120,7 +120,7 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_type).to eq('Role')
           expect(draft.draftable_id).to eq(model.id)
           expect(draft.draftable).to eq(model)
-          expect(draft.action_type).to eq(action_type)
+          expect(draft.draft_action_type).to eq(action_type)
           expect(draft.draft_changes).to eq(changes)
         end
 
@@ -132,25 +132,44 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_type).to eq('Role')
           expect(draft.draftable_id).to eq(model.id)
           expect(draft.draftable).to eq(model)
-          expect(draft.action_type).to eq(action_type)
+          expect(draft.draft_action_type).to eq(action_type)
           expect(draft.draft_changes).to eq(changes)
         end
 
         it 'sets the draft field on the model to the draft object' do
           draft = subject.write_draft_from_model(action_type, model)
-          expect(model.draft).to eq(draft)
+          expect(model.draft_pending_approval).to eq(draft)
         end
       end
     end
 
     context 'when model has an existing draft' do
-      let!(:existing_draft) { FactoryBot.create(:draft, draftable: model) }
       let(:action_type) { Draft::UPDATE }  # Largely irrelevant, just any valid action type
 
-      it 'raises ExistingDraftError' do
-        expect do
-          subject.write_draft_from_model(action_type, model)
-        end.to raise_error(DraftApprove::ExistingDraftError)
+      context 'when existing draft is pending approval' do
+        let!(:existing_draft) { FactoryBot.create(:draft, :pending_approval, draftable: model) }
+
+        it 'raises ExistingDraftError' do
+          expect do
+            subject.write_draft_from_model(action_type, model)
+          end.to raise_error(DraftApprove::ExistingDraftError)
+        end
+      end
+
+      context 'when existing draft is approved' do
+        let!(:existing_draft) { FactoryBot.create(:draft, :approved, draftable: model) }
+
+        it 'writes the draft to the database' do
+          expect { subject.write_draft_from_model(action_type, model) }.to change { Draft.count }.by(1)
+        end
+      end
+
+      context 'when existing draft is rejected' do
+        let!(:existing_draft) { FactoryBot.create(:draft, :rejected, draftable: model) }
+
+        it 'writes the draft to the database' do
+          expect { subject.write_draft_from_model(action_type, model) }.to change { Draft.count }.by(1)
+        end
       end
     end
 
@@ -164,7 +183,7 @@ RSpec.describe DraftApprove::Persistor do
       end
     end
 
-    context 'when action_type is invalid' do
+    context 'when draft_action_type is invalid' do
       let(:action_type) { 'some invalid action_type' }
 
       it 'raises ArgumentError' do
@@ -174,7 +193,7 @@ RSpec.describe DraftApprove::Persistor do
       end
     end
 
-    context 'when action_type is nil' do
+    context 'when draft_action_type is nil' do
       it 'raises ArgumentError' do
         expect do
           subject.write_draft_from_model(nil, model)
@@ -184,12 +203,12 @@ RSpec.describe DraftApprove::Persistor do
   end
 
   describe '.write_model_from_draft' do
-    # The model / changes / options we use here are largely irrelevant to the tests,
+    # The model / changes / serializer we use here are largely irrelevant to the tests,
     # we just need a model to be created/updated/deleted, and a known Serializer class
     # that will be called with the draft - we mock out the response so it returns the
     # expected new values
-    let(:model)   { FactoryBot.create(:contact_address) }
-    let(:options) { { DraftApprove::Persistor::SERIALIZER_CLASS => DraftApprove::Serializers::Json.name } }
+    let(:model)      { FactoryBot.create(:contact_address) }
+    let(:serializer) { DraftApprove::Serializers::Json.name }
 
     let(:new_address_type) { FactoryBot.create(:contact_address_type) }
     let(:new_contactable)  { FactoryBot.create(:organization) }
@@ -214,9 +233,10 @@ RSpec.describe DraftApprove::Persistor do
           :draft,
           draftable_type: model.class.name,
           draftable_id: nil,
-          action_type: Draft::CREATE,
+          draft_action_type: Draft::CREATE,
+          draft_serializer: serializer,
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
-          draft_options: options
+          draft_options: {}
         )
       end
 
@@ -252,9 +272,10 @@ RSpec.describe DraftApprove::Persistor do
         FactoryBot.create(
           :draft,
           draftable: model,
-          action_type: Draft::UPDATE,
+          draft_action_type: Draft::UPDATE,
+          draft_serializer: serializer,
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
-          draft_options: options
+          draft_options: {}
         )
       end
 
@@ -285,9 +306,10 @@ RSpec.describe DraftApprove::Persistor do
         FactoryBot.create(
           :draft,
           draftable: model,
-          action_type: Draft::DELETE,
+          draft_action_type: Draft::DELETE,
+          draft_serializer: serializer,
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
-          draft_options: options
+          draft_options: {}
         )
       end
 
@@ -309,31 +331,15 @@ RSpec.describe DraftApprove::Persistor do
       end
     end
 
-    context 'when writing a model from a draft with no serializer' do
-      let(:draft) do
-        FactoryBot.create(
-          :draft,
-          draftable: model,
-          action_type: Draft::UPDATE,
-          draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
-          draft_options: {}   # No options, no serializer set
-        )
-      end
-
-      it 'uses the default serializer class' do
-        expect(DraftApprove::Serializers::Json).to receive(:new_values_for_draft).with(draft).and_return(new_values_hash)
-        subject.write_model_from_draft(draft)
-      end
-    end
-
     context 'when writing a model from a draft with an unknown serializer' do
       let(:draft) do
         FactoryBot.create(
           :draft,
           draftable: model,
-          action_type: Draft::UPDATE,
+          draft_action_type: Draft::UPDATE,
+          draft_serializer: 'DraftApprove::Serializers::NonExistantSerializer',
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
-          draft_options: { DraftApprove::Persistor::SERIALIZER_CLASS => 'DraftApprove::Serializers::NonExistantSerializer' }
+          draft_options: {}
         )
       end
 
@@ -350,9 +356,10 @@ RSpec.describe DraftApprove::Persistor do
           :draft,
           :skip_validations,
           draftable: model,
-          action_type: 'NonExistantActionType',
+          draft_action_type: 'NonExistantActionType',
+          draft_serializer: serializer,
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
-          draft_options: options
+          draft_options: {}
         )
       end
 

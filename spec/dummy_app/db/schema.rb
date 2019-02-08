@@ -81,7 +81,11 @@ ActiveRecord::Schema.define do
   # about this later though...
 
   create_table :draft_transactions, comment: 'Table linking multiple drafts to be applied in sequence, within a transaction' do |t|
-    t.string :user, comment: 'The user or process which created this transaction'
+    t.string :status,        null: false, index: true,  comment: 'The status of the drafts within this transaction (pending approval, approved, rejected, errored)'
+    t.string :created_by,    null: true,  index: true,  comment: 'The user or process which created the drafts in this transaction'
+    t.string :reviewed_by,   null: true,  index: true,  comment: 'The user who approved or rejected the drafts in this transaction'
+    t.string :review_reason, null: true,  index: false, comment: 'The reason given by the user for approving or rejecting the drafts in this transaction'
+    t.string :error,         null: true,  index: false, comment: 'If there was an error while approving this transaction, more information on the error that occurred'
 
     t.timestamps
   end
@@ -89,9 +93,11 @@ ActiveRecord::Schema.define do
   create_table :drafts, comment: 'Drafts of changes to be approved' do |t|
     t.references :draft_transaction, null: false, index: true, foreign_key: true
     t.references :draftable,         null: true,  index: true, polymorphic: true
-    t.string     :action_type,       null: false
+    t.string     :draft_action_type, null: false
+    t.string     :draft_serializer,  null: false
     t.json       :draft_changes,     null: false
     t.json       :draft_options,     null: true
+    t.json       :draft_extra_data,  null: true
 
     t.timestamps
   end

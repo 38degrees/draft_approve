@@ -172,7 +172,7 @@ RSpec.describe DraftApprove::Serializers::Json do
               {
                 'person' => [
                   { const_type => 'Person', const_id => person.id },
-                  { const_type => 'Draft', const_id => new_person.draft.id }
+                  { const_type => 'Draft', const_id => new_person.draft_pending_approval.id }
                 ]
               }
             end
@@ -208,7 +208,7 @@ RSpec.describe DraftApprove::Serializers::Json do
               ],
               'organization' => [
                 { const_type => 'Organization', const_id => org.id },
-                { const_type => 'Draft', const_id => new_org.draft.id }
+                { const_type => 'Draft', const_id => new_org.draft_pending_approval.id }
               ]
             }
           end
@@ -244,8 +244,8 @@ RSpec.describe DraftApprove::Serializers::Json do
           let(:new_org)    { FactoryBot.build(:organization, :with_persisted_draft) }
           let(:expected_changes) do
             {
-              'person' => [nil, { const_type => 'Draft', const_id => new_person.draft.id }],
-              'organization' => [nil, { const_type => 'Draft', const_id => new_org.draft.id } ]
+              'person' => [nil, { const_type => 'Draft', const_id => new_person.draft_pending_approval.id }],
+              'organization' => [nil, { const_type => 'Draft', const_id => new_org.draft_pending_approval.id } ]
             }
           end
 
@@ -337,7 +337,7 @@ RSpec.describe DraftApprove::Serializers::Json do
               {
                 'contactable' => [
                   { const_type => 'Person', const_id => person.id },
-                  { const_type => 'Draft', const_id => new_person.draft.id }
+                  { const_type => 'Draft', const_id => new_person.draft_pending_approval.id }
                 ]
               }
             end
@@ -369,7 +369,7 @@ RSpec.describe DraftApprove::Serializers::Json do
             {
               'contactable' => [
                 { const_type => 'Person', const_id => person.id },
-                { const_type => 'Draft', const_id => new_person.draft.id }
+                { const_type => 'Draft', const_id => new_person.draft_pending_approval.id }
               ],
               'contact_address_type' => [
                 { const_type => 'ContactAddressType', const_id => contact_type.id },
@@ -418,11 +418,11 @@ RSpec.describe DraftApprove::Serializers::Json do
             {
               'contactable' => [
                 nil,
-                { const_type => 'Draft', const_id => new_person.draft.id }
+                { const_type => 'Draft', const_id => new_person.draft_pending_approval.id }
               ],
               'contact_address_type' => [
                 nil,
-                { const_type => 'Draft', const_id => new_contact_type.draft.id }
+                { const_type => 'Draft', const_id => new_contact_type.draft_pending_approval.id }
               ],
               'value' => [nil, contact.value]
             }
