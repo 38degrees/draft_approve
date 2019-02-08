@@ -10,6 +10,7 @@ RSpec.describe DraftApprove::Persistor do
     let(:model)   { FactoryBot.create(:role) }
     let(:changes) { { 'some_field' => ['old_value', 'new_value'] } }
 
+    # Mock the call to the serializer
     before(:each) do
       allow(DraftApprove::Serializers::Json).to receive(:changes_for_model).with(model).and_return(changes)
     end
@@ -143,6 +144,50 @@ RSpec.describe DraftApprove::Persistor do
       end
     end
 
+    context 'when options are passed in' do
+      let(:action_type) { Draft::UPDATE }  # Largely irrelevant, just any valid action type
+
+      context 'when a valid option is specified as a symbol' do
+        let(:input_options) { { create_method: 'find_or_create_by!' } }
+        let(:draft_options) { { 'create_method' => 'find_or_create_by!' } }
+
+        it 'creates a draft with options set correctly' do
+          draft = subject.write_draft_from_model(action_type, model, input_options)
+          expect(draft.draft_options).to eq(draft_options)
+        end
+
+        it 'persists the draft to the database with options set correctly' do
+          draft = subject.write_draft_from_model(action_type, model, input_options)
+          expect(draft.reload.draft_options).to eq(draft_options)
+        end
+      end
+
+      context 'when a valid option is specified as a string' do
+        let(:input_options) { { 'update_method' => 'update_columns' } }
+        let(:draft_options) { { 'update_method' => 'update_columns' } }
+
+        it 'creates a draft with options set correctly' do
+          draft = subject.write_draft_from_model(action_type, model, input_options)
+          expect(draft.draft_options).to eq(draft_options)
+        end
+
+        it 'persists the draft to the database with options set correctly' do
+          draft = subject.write_draft_from_model(action_type, model, input_options)
+          expect(draft.reload.draft_options).to eq(draft_options)
+        end
+      end
+
+      context 'when an invalid option is specified' do
+        let(:input_options) { { foo: 'bar' } }
+
+        it 'raises ArgumentError' do
+          expect do
+            subject.write_draft_from_model(action_type, model, input_options)
+          end.to raise_error(ArgumentError)
+        end
+      end
+    end
+
     context 'when model has an existing draft' do
       let(:action_type) { Draft::UPDATE }  # Largely irrelevant, just any valid action type
 
@@ -203,12 +248,13 @@ RSpec.describe DraftApprove::Persistor do
   end
 
   describe '.write_model_from_draft' do
-    # The model / changes / serializer we use here are largely irrelevant to the tests,
+    # The model / changes / options we use here are largely irrelevant to the tests,
     # we just need a model to be created/updated/deleted, and a known Serializer class
     # that will be called with the draft - we mock out the response so it returns the
     # expected new values
     let(:model)      { FactoryBot.create(:contact_address) }
     let(:serializer) { DraftApprove::Serializers::Json.name }
+    let(:options)    { nil }
 
     let(:new_address_type) { FactoryBot.create(:contact_address_type) }
     let(:new_contactable)  { FactoryBot.create(:organization) }
@@ -223,6 +269,7 @@ RSpec.describe DraftApprove::Persistor do
       }
     end
 
+    # Mock the call to the serializer
     before(:each) do
       allow(DraftApprove::Serializers::Json).to receive(:new_values_for_draft).with(draft).and_return(new_values_hash)
     end
@@ -236,7 +283,7 @@ RSpec.describe DraftApprove::Persistor do
           draft_action_type: Draft::CREATE,
           draft_serializer: serializer,
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
-          draft_options: {}
+          draft_options: options
         )
       end
 
@@ -265,6 +312,16 @@ RSpec.describe DraftApprove::Persistor do
         expect(new_model.label).to eq(new_label)
         expect(new_model.value).to eq(new_value)
       end
+
+      context 'when a create_method is specified in the options' do
+        let(:create_method) { 'some_create_method' }
+        let(:options)       { { create_method: create_method } }
+
+        it 'calls the given create_method on the model class' do
+          expect(model.class).to receive(create_method).with(new_values_hash)
+          subject.write_model_from_draft(draft)
+        end
+      end
     end
 
     context 'when writing a model from an UPDATE draft' do
@@ -275,7 +332,7 @@ RSpec.describe DraftApprove::Persistor do
           draft_action_type: Draft::UPDATE,
           draft_serializer: serializer,
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
-          draft_options: {}
+          draft_options: options
         )
       end
 
@@ -299,6 +356,16 @@ RSpec.describe DraftApprove::Persistor do
         expect(changed_model.label).to eq(new_label)
         expect(changed_model.value).to eq(new_value)
       end
+
+      context 'when an update_method is specified in the options' do
+        let(:update_method) { 'some_update_method' }
+        let(:options)       { { update_method: update_method } }
+
+        it 'calls the given update_method on the model instance' do
+          expect(draft.draftable).to receive(update_method).with(new_values_hash)
+          subject.write_model_from_draft(draft)
+        end
+      end
     end
 
     context 'when writing a model from a DELETE draft' do
@@ -309,7 +376,7 @@ RSpec.describe DraftApprove::Persistor do
           draft_action_type: Draft::DELETE,
           draft_serializer: serializer,
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
-          draft_options: {}
+          draft_options: options
         )
       end
 
@@ -328,6 +395,16 @@ RSpec.describe DraftApprove::Persistor do
         expect do
           changed_model.reload
         end.to raise_error(ActiveRecord::RecordNotFound)
+      end
+
+      context 'when a delete_method is specified in the options' do
+        let(:delete_method) { 'some_delete_method' }
+        let(:options)       { { delete_method: delete_method } }
+
+        it 'calls the given delete_method on the model instance' do
+          expect(draft.draftable).to receive(delete_method).with(no_args)
+          subject.write_model_from_draft(draft)
+        end
       end
     end
 

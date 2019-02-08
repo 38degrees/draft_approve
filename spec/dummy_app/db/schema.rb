@@ -97,7 +97,6 @@ ActiveRecord::Schema.define do
     t.string     :draft_serializer,  null: false
     t.json       :draft_changes,     null: false
     t.json       :draft_options,     null: true
-    t.json       :draft_extra_data,  null: true
 
     t.timestamps
   end
