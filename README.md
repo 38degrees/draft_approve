@@ -210,7 +210,7 @@ end
 
 **CAUTION**
 * No validation is done to check you are using sensible alternative methods, so use at your own risk!
-* **It is strongly recommended to use methods which will raise an error if they fail**, otherwise one draft in a Draft Transaction may fail, but subsequent drafts may still be applied, and the Draft Transaction as a whole may appear to have been successfully approved & applied.
+* **It is strongly recommended to use methods which will raise an error if they fail**, otherwise one draft in a Draft Transaction may 'silently' fail, causing subsequent drafts to be applied, and the Draft Transaction as a whole may appear to have been successfully approved & applied
 * Methods used as the `create_method` **must** be _class_ methods for the model you are drafting, which accept a hash of attribute names to attribute values (eg. `Person.create!`, `Person.find_or_create_by!`, etc)
 * Methods used as the `update_method` **must** be _instance_ methods for the model you are drafting, which accept a hash of attribute names to attribute values (eg. `person.update!`, `person.update_attributes!`, etc)
 * Methods used as the `delete_method` **must** be _instance_ methods for the model you are drafting, which requires no arguments (eg. `person.destroy!`, `person.delete`, etc)
