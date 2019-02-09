@@ -45,7 +45,7 @@ module DraftApprove
 
     private
 
-    def self.in_new_draft_transaction_helper(created_by: nil, extra_data: extra_data)
+    def self.in_new_draft_transaction_helper(created_by: nil, extra_data: nil)
       raise DraftApprove::NestedDraftTransactionError if current_draft_transaction.present?
       draft_transaction, yield_return = nil
 
