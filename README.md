@@ -124,10 +124,10 @@ For example:
 
 ```
 # If you have reference to a Draft object
-draft.draft_transaction.reject_changes(reviewed_by: 'my_username', review_reason: 'Nope!')
+draft.draft_transaction.reject_changes!(reviewed_by: 'my_username', review_reason: 'Nope!')
 
 # If you have reference to a DraftTransaction object
-draft_transaction.reject_changes(reviewed_by: 'my_username', review_reason: 'Nope!')
+draft_transaction.reject_changes!(reviewed_by: 'my_username', review_reason: 'Nope!')
 ```
 
 ### More examples

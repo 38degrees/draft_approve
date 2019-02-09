@@ -35,7 +35,7 @@ class DraftTransaction < ActiveRecord::Base
     return true
   end
 
-  def reject_changes(reviewed_by: nil, review_reason: nil)
+  def reject_changes!(reviewed_by: nil, review_reason: nil)
     self.update!(status: REJECTED, reviewed_by: reviewed_by, review_reason: review_reason)
   end
 end
