@@ -130,6 +130,22 @@ draft.draft_transaction.reject_changes!(reviewed_by: 'my_username', review_reaso
 draft_transaction.reject_changes!(reviewed_by: 'my_username', review_reason: 'Nope!')
 ```
 
+### Find drafts pending approval
+
+As discussed, all drafts are created inside a Draft Transaction, and it is these which must be approved or rejected.
+
+You can find all Draft Transactions with a particular status using the following methods:
+
+```
+pending_draft_transactions = DraftTransaction.pending_approval
+
+approved_draft_transactions = DraftTransaction.approved
+
+rejected_draft_transactions = DraftTransaction.rejected
+```
+
+### Advanced usage
+
 ### More examples
 
 Further examples can be seen in the [integration tests](spec/integration).
