@@ -195,16 +195,16 @@ For example:
 ```
 # TODO
 draft_transaction = Person.draft_transaction do
-  # When the draft is approved, find or create Person A
+  # When approved, find or create Person A
   person = Person.new(name: 'Person A')
   person.save_draft!(create_method: :find_or_create_by!)
   
-  # When the draft is approved, update the record ignoring validations
+  # When approved, update the record ignoring validations
   existing_person = Person.find(1)
   existing_person.birth_date = '1800-01-01'
   existing_person.save_draft!(update_method: :update_columns)
 
-  # When the draft is approved, delete the record directly in the database without any ActiveRecord callbacks
+  # When approved, delete the record directly in the database without any ActiveRecord callbacks
   Person.find(2).draft_destroy!(delete_method: :delete)
 end
 ```
