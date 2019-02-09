@@ -5,8 +5,8 @@ module DraftApprove
   class Transaction
     # Start a new database Transaction, and create a new DraftTransaction to
     # wrap the commands in the block
-    def self.in_new_draft_transaction(created_by: nil)
-      (draft_transaction, yield_return) = in_new_draft_transaction_helper(created_by: created_by) do
+    def self.in_new_draft_transaction(created_by: nil, extra_data: nil)
+      (draft_transaction, yield_return) = in_new_draft_transaction_helper(created_by: created_by, extra_data: extra_data) do
         yield
       end
 
@@ -17,7 +17,7 @@ module DraftApprove
 
     # Ensure the block is running in a DraftTransaction - if there's not one
     # already, create one
-    def self.ensure_in_draft_transaction(created_by: nil)
+    def self.ensure_in_draft_transaction(created_by: nil, extra_data: nil)
       draft_transaction = current_draft_transaction
 
       if draft_transaction
@@ -26,7 +26,7 @@ module DraftApprove
       else
         # There's no transaction - start one and yield to the block inside the
         # new transaction
-        (draft_transaction, yield_return) = in_new_draft_transaction_helper(created_by: created_by) do
+        (draft_transaction, yield_return) = in_new_draft_transaction_helper(created_by: created_by, extra_data: extra_data) do
           yield
         end
 
@@ -45,13 +45,17 @@ module DraftApprove
 
     private
 
-    def self.in_new_draft_transaction_helper(created_by: nil)
+    def self.in_new_draft_transaction_helper(created_by: nil, extra_data: extra_data)
       raise DraftApprove::NestedDraftTransactionError if current_draft_transaction.present?
       draft_transaction, yield_return = nil
 
       ActiveRecord::Base.transaction do
         begin
-          draft_transaction = DraftTransaction.create!(status: DraftTransaction::PENDING_APPROVAL, created_by: created_by)
+          draft_transaction = DraftTransaction.create!(
+            status: DraftTransaction::PENDING_APPROVAL,
+            created_by: created_by,
+            extra_data: extra_data
+          )
           self.current_draft_transaction = draft_transaction
           yield_return = yield
         ensure

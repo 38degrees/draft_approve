@@ -25,6 +25,24 @@ RSpec.describe DraftApprove::Transaction do
             end
           end.to change { dummy_record_count(dummy_record_name) }.by(1)
         end
+
+        context 'when a created_by is passed in' do
+          let(:created_by) { 'A test user' }
+
+          it 'creates a DraftTransaction with the correct created_by' do
+            draft_transaction = subject.in_new_draft_transaction(created_by: created_by) { true }
+            expect(draft_transaction.created_by).to eq(created_by)
+          end
+        end
+
+        context 'when extra_data is passed in' do
+          let(:extra_data) { { 'foo' => 'bar' } }
+
+          it 'creates a DraftTransaction with the correct extra_data' do
+            draft_transaction = subject.in_new_draft_transaction(extra_data: extra_data) { true }
+            expect(draft_transaction.extra_data).to eq(extra_data)
+          end
+        end
       end
 
       context 'when an error occurs in the given block' do
