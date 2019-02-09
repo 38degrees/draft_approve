@@ -195,16 +195,26 @@ For example:
 ```
 # TODO
 draft_transaction = Person.draft_transaction do
-  person = Person.new(name: 'new person name')
-  person.save_draft!
+  # When the draft is approved, find or create Person A
+  person = Person.new(name: 'Person A')
+  person.save_draft!(create_method: :find_or_create_by!)
+  
+  # When the draft is approved, update the record ignoring validations
+  existing_person = Person.find(1)
+  existing_person.birth_date = '1800-01-01'
+  existing_person.save_draft!(update_method: :update_columns)
 
-  existing_contact_address = ContactAddress.find(1)
-  existing_contact_address.person = person
-  existing_contact_address.save_draft!
-
-  ContactAddress.find(2).draft_destroy!
+  # When the draft is approved, delete the record directly in the database without any ActiveRecord callbacks
+  Person.find(2).draft_destroy!(delete_method: :delete)
 end
 ```
+
+**CAUTION**
+* No validation is done to check you are using sensible alternative methods, so use at your own risk!
+* **It is strongly recommended to use methods which will raise an error if they fail**, otherwise one draft in a Draft Transaction may fail, but subsequent drafts may still be applied, and the Draft Transaction as a whole may appear to have been successfully approved & applied.
+* Methods used as the `create_method` **must** be _class_ methods for the model you are drafting, which accept a hash of attribute names to attribute values (eg. `Person.create!`, `Person.find_or_create_by!`, etc)
+* Methods used as the `update_method` **must** be _instance_ methods for the model you are drafting, which accept a hash of attribute names to attribute values (eg. `person.update!`, `person.update_attributes!`, etc)
+* Methods used as the `delete_method` **must** be _instance_ methods for the model you are drafting, which requires no arguments (eg. `person.destroy!`, `person.delete`, etc)
 
 ### More examples
 
