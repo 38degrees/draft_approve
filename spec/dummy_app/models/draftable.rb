@@ -1,5 +1,5 @@
 class Draftable < ActiveRecord::Base
   self.abstract_class = true
 
-  has_drafts
+  acts_as_draftable
 end

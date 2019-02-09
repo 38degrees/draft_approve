@@ -5,8 +5,7 @@ require 'draft_approve/models/draft'
 module DraftApprove
   module Draftable
     module BaseClassMethods
-      #TODO: Rename to acts_as_draftable?
-      def has_drafts(options={})
+      def acts_as_draftable(options={})
         include DraftApprove::Draftable::InstanceMethods
         extend DraftApprove::Draftable::ClassMethods
 
