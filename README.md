@@ -146,6 +146,66 @@ rejected_draft_transactions = DraftTransaction.rejected
 
 ### Advanced usage
 
+#### Who created a draft?
+
+When creating a Draft Transaction, you may pass in a `created_by` string. This could be a username or the name of an automated process, and will be stored in the `DraftTransaction.created_by` column in the database. This option is only available when saving drafts within an explicit Draft Transaction.
+
+For example:
+
+```
+draft_transaction = Person.draft_transaction(created_by: 'UserA') do
+  Person.new(name: 'new person name').save_draft!
+end
+```
+
+#### Extra metadata for drafts
+
+When creating a Draft Transaction, you may pass in an `extra_data` hash. This can contain anything, and will be stored in the `DraftTransaction.extra_data` column in the database. This option is only available when saving drafts within an explicit Draft Transaction.
+
+Possible use-cases for the extra data hash are storing which users or roles are allowed to approve these drafts, storing additional data about why or how the drafts were created, etc. The DraftApprove gem does not implement these features for you (eg. limiting who can approve drafts), but simply gives you a way to store generic metadata about a Draft Transaction should you wish to build such features within your application logic.
+
+For example:
+
+```
+extra_data = {
+  'can_be_approved_by' => ['SuperAdminRole', 'UserB'],
+  'data_source_url' => 'https://en.wikipedia.org/wiki/RubyGems',
+  'data_scraped_at' => '2019-02-08 12:00:00'
+}
+
+draft_transaction = Person.draft_transaction(extra_data: extra_data) do
+  Person.new(name: 'new person name').save_draft!
+end
+```
+
+#### Custom methods for creating, updating and deleting data
+
+When a Draft Transaction is approved, all drafts within the transaction are applied, meaning the changes within the draft are made live on the database. This is acheived by calling suitable ActiveRecord methods. The default methods used by the DraftApprove gem are:
+
+* `create!` for new models saved with `save_draft!`
+* `update!` for existing models which have been modified and saved with `save_draft!`
+* `destroy!` for models which have had `draft_destroy!` called on them
+
+Note that `create!` is a _class_ level ActiveRecord method, while `update!` and `destroy!` are _instance_ level ActiveRecord methods.
+
+When saving drafts, you may override the method used to save the changes by passing an options hash to the `save_draft!` or `draft_destroy!` methods.
+
+For example:
+
+```
+# TODO
+draft_transaction = Person.draft_transaction do
+  person = Person.new(name: 'new person name')
+  person.save_draft!
+
+  existing_contact_address = ContactAddress.find(1)
+  existing_contact_address.person = person
+  existing_contact_address.save_draft!
+
+  ContactAddress.find(2).draft_destroy!
+end
+```
+
 ### More examples
 
 Further examples can be seen in the [integration tests](spec/integration).
