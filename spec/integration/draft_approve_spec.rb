@@ -387,5 +387,91 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
         expect(person.contact_addresses.first.value).to eq(new_person_contact_value)
       end
     end
+
+    context 'when multiple transactions create the same record with create_method create!' do
+      let(:new_role_name)            { 'integration test role name NEW' }
+
+      it 'creates the new record when the first transaction is approved, and the second transaction raises an error' do
+        # Declare transactions so we have reference to them outside the expect blocks
+        draft_transaction_1, draft_transaction_2 = nil
+
+        # Draft create the new role, using find_or_create_by
+        expect do
+          draft_transaction_1 = Role.draft_transaction do
+            new_role = Role.new(name: new_role_name)
+            new_role.save_draft!(create_method: :create!)
+          end
+        end.to change { DraftTransaction.count }.by(1).and change { Draft.count }.by(1)
+
+        # Draft create the new role again
+        expect do
+          draft_transaction_2 = Role.draft_transaction do
+            new_role = Role.new(name: new_role_name)
+            new_role.save_draft!(create_method: :create!)
+          end
+        end.to change { DraftTransaction.count }.by(1).and change { Draft.count }.by(1)
+
+        # Approve the first draft
+        expect do
+          draft_transaction_1.approve_changes!
+        end.to change { Role.count }.by(1)
+
+        draft_1_role = draft_transaction_1.drafts.first.draftable
+        expect(draft_1_role.class).to eq(Role)
+        expect(draft_1_role.name).to eq(new_role_name)
+
+        # Approve the second draft, which should raise an error
+        expect do
+          draft_transaction_2.approve_changes!
+        end.to raise_error(ActiveRecord::RecordNotUnique)
+      end
+    end
+
+    context 'when multiple transactions create the same record with create_method find_or_create_by!' do
+      let(:new_role_name)            { 'integration test role name NEW' }
+
+      it 'creates the new record once only, and both drafts end up pointing to the same draftable record' do
+        # Declare transactions so we have reference to them outside the expect blocks
+        draft_transaction_1, draft_transaction_2 = nil
+
+        # Draft create the new role, using find_or_create_by
+        expect do
+          draft_transaction_1 = Role.draft_transaction do
+            new_role = Role.new(name: new_role_name)
+            new_role.save_draft!(create_method: :find_or_create_by!)
+          end
+        end.to change { DraftTransaction.count }.by(1).and change { Draft.count }.by(1)
+
+        # Draft create the new role again
+        expect do
+          draft_transaction_2 = Role.draft_transaction do
+            new_role = Role.new(name: new_role_name)
+            new_role.save_draft!(create_method: :find_or_create_by!)
+          end
+        end.to change { DraftTransaction.count }.by(1).and change { Draft.count }.by(1)
+
+        # Approve the first draft
+        expect do
+          draft_transaction_1.approve_changes!
+        end.to change { Role.count }.by(1)
+
+        # Approve the second draft
+        expect do
+          draft_transaction_2.approve_changes!
+        end.not_to change { Role.count }
+
+        # Check both drafts refer to the SAME role object
+        draft_1_role = draft_transaction_1.drafts.first.draftable
+        draft_2_role = draft_transaction_2.drafts.first.draftable
+
+        expect(draft_1_role.class).to eq(Role)
+        expect(draft_2_role.class).to eq(Role)
+
+        expect(draft_1_role.name).to eq(new_role_name)
+        expect(draft_2_role.name).to eq(new_role_name)
+
+        expect(draft_1_role.id).to eq(draft_2_role.id)
+      end
+    end
   end
 end
