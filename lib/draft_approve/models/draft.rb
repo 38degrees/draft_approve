@@ -19,8 +19,7 @@ class Draft < ActiveRecord::Base
   scope :approval_error, -> { joins(:draft_transaction).merge(DraftTransaction.approval_error) }
 
   # Approve changes, writing the draft changes to the database
-  #TODO: rename to apply! or apply_changes! ?
-  def apply_changes
+  def apply_changes!
     DraftApprove::Persistor.write_model_from_draft(self)
   end
 end

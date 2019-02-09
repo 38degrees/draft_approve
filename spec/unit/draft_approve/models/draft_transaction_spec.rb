@@ -7,7 +7,7 @@ RSpec.describe DraftTransaction do
     let!(:draft)   { FactoryBot.create(:draft, draft_transaction: subject) }
 
     before do
-      allow_any_instance_of(Draft).to receive(:apply_changes).and_return(:true)
+      allow_any_instance_of(Draft).to receive(:apply_changes!).and_return(:true)
     end
 
     context 'when no error occurs while approving the changes' do
@@ -37,7 +37,7 @@ RSpec.describe DraftTransaction do
 
     context 'when an error occurs while approving the changes' do
       before do
-        allow_any_instance_of(Draft).to receive(:apply_changes).and_raise(TestError)
+        allow_any_instance_of(Draft).to receive(:apply_changes!).and_raise(TestError)
       end
 
       it 're-raises the error' do

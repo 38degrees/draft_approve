@@ -22,7 +22,7 @@ class DraftTransaction < ActiveRecord::Base
     begin
       ActiveRecord::Base.transaction do
         drafts.order(:created_at, :id).each do |draft|
-          draft.apply_changes
+          draft.apply_changes!
         end
       end
     rescue StandardError => e
