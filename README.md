@@ -40,21 +40,21 @@ $ rails db:migrate
 
 ### Make your Models draftable
 
-Add `has_drafts` to all models you'd like to be draftable. For example:
+Add `acts_as_draftable` to all models you'd like to be draftable. For example:
 
 ```
 # app/models/person.rb
 class Person < ActiveRecord::Base
   has_many :contact_addresses
 
-  has_drafts
+  acts_as_draftable
 end
 
 # app/models/contact_address.rb
 class ContactAddress < ActiveRecord::Base
   belongs_to :person
 
-  has_drafts
+  acts_as_draftable
 end
 ```
 
@@ -91,11 +91,11 @@ For example:
 draft_transaction = Person.draft_transaction do
   person = Person.new(name: 'new person name')
   person.save_draft!
-  
+
   existing_contact_address = ContactAddress.find(1)
   existing_contact_address.person = person
   existing_contact_address.save_draft!
-  
+
   ContactAddress.find(2).draft_destroy!
 end
 ```
