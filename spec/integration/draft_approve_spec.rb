@@ -16,7 +16,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
         # Approve the draft
         expect do
-          draft.draft_transaction.approve_changes
+          draft.draft_transaction.approve_changes!
         end.to change { Role.count }.by(1)
 
         expect(Role.where(name: role_name).count).to eq(1)
@@ -38,7 +38,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
         # Approve the draft
         expect do
-          draft.draft_transaction.approve_changes
+          draft.draft_transaction.approve_changes!
         end.not_to change { Role.count }
 
         expect(model.reload.name).to eq(role_name)
@@ -59,7 +59,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
         # Approve the draft
         expect do
-          draft.draft_transaction.approve_changes
+          draft.draft_transaction.approve_changes!
         end.to change { Role.count }.by(-1)
 
         expect(Role.where(name: role_name).count).to eq(0)
@@ -115,7 +115,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
         # Approve the draft
         expect do
-          draft_transaction.approve_changes
+          draft_transaction.approve_changes!
         end.to change { Gender.count }.by(1)
         .and change { Person.count }.by(1)
         .and change { Organization.count }.by(1)
@@ -191,7 +191,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
         # Approve the draft
         expect do
-          draft_transaction.approve_changes
+          draft_transaction.approve_changes!
         end.to change { Gender.count }.by(0)
         .and change { Person.count }.by(0)
         .and change { Organization.count }.by(0)
@@ -273,7 +273,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
         # Approve the draft
         expect do
-          draft_transaction.approve_changes
+          draft_transaction.approve_changes!
         end.to change { Gender.count }.by(-1)
         .and change { Person.count }.by(-1)
         .and change { Organization.count }.by(-1)
@@ -346,7 +346,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
         # Approve the draft
         expect do
-          draft_transaction.approve_changes
+          draft_transaction.approve_changes!
         end.to change { Gender.count }.by(-1)           # 1 destroyed
         .and change { Person.count }.by(0)              # 1 updated
         .and change { Organization.count }.by(0)        # 1 created, 1 destroyed

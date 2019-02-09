@@ -18,8 +18,7 @@ class DraftTransaction < ActiveRecord::Base
   scope :rejected, -> { where(status: REJECTED) }
   scope :approval_error, -> { where(status: APPROVAL_ERROR) }
 
-  #TODO: Rename to approve_changes! ?
-  def approve_changes(reviewed_by: nil, review_reason: nil)
+  def approve_changes!(reviewed_by: nil, review_reason: nil)
     begin
       ActiveRecord::Base.transaction do
         drafts.order(:created_at, :id).each do |draft|

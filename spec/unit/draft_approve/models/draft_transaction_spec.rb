@@ -3,7 +3,7 @@ require 'spec_helper'
 RSpec.describe DraftTransaction do
   let(:subject) { FactoryBot.create(:draft_transaction) }
 
-  describe '#approve_changes' do
+  describe '#approve_changes!' do
     let!(:draft)   { FactoryBot.create(:draft, draft_transaction: subject) }
 
     before do
@@ -12,7 +12,7 @@ RSpec.describe DraftTransaction do
 
     context 'when no error occurs while approving the changes' do
       it 'updates the status of the draft transaction to approved' do
-        subject.approve_changes
+        subject.approve_changes!
         expect(subject.reload.status).to eq(DraftTransaction::APPROVED)
       end
 
@@ -20,7 +20,7 @@ RSpec.describe DraftTransaction do
         let(:reviewed_by) { 'the user who approved it' }
 
         it 'updates the reviewed_by on the draft transaction' do
-          subject.approve_changes(reviewed_by: reviewed_by)
+          subject.approve_changes!(reviewed_by: reviewed_by)
           expect(subject.reload.reviewed_by).to eq(reviewed_by)
         end
       end
@@ -29,7 +29,7 @@ RSpec.describe DraftTransaction do
         let(:review_reason) { 'the reason for approving it' }
 
         it 'updates the review_reason on the draft transaction' do
-          subject.approve_changes(review_reason: review_reason)
+          subject.approve_changes!(review_reason: review_reason)
           expect(subject.reload.review_reason).to eq(review_reason)
         end
       end
@@ -42,13 +42,13 @@ RSpec.describe DraftTransaction do
 
       it 're-raises the error' do
         expect do
-          subject.approve_changes
+          subject.approve_changes!
         end.to raise_error(TestError)
       end
 
       it 'updates the status of the draft transaction to approval error' do
         begin
-          subject.approve_changes
+          subject.approve_changes!
         rescue
           # Prevent the expected exception from killing the test
         end
@@ -58,7 +58,7 @@ RSpec.describe DraftTransaction do
 
       it 'sets the error column on the draft transaction' do
         begin
-          subject.approve_changes
+          subject.approve_changes!
         rescue
           # Prevent the expected exception from killing the test
         end

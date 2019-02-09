@@ -110,10 +110,10 @@ For example:
 
 ```
 # If you have reference to a Draft object
-draft.draft_transaction.approve_changes(reviewed_by: 'my_username', review_reason: 'Looks Good!')
+draft.draft_transaction.approve_changes!(reviewed_by: 'my_username', review_reason: 'Looks Good!')
 
 # If you have reference to a DraftTransaction object
-draft_transaction.approve_changes(reviewed_by: 'my_username', review_reason: 'Looks Good!')
+draft_transaction.approve_changes!(reviewed_by: 'my_username', review_reason: 'Looks Good!')
 ```
 
 ### Reject drafts
