@@ -193,7 +193,6 @@ When saving drafts, you may override the method used to save the changes by pass
 For example:
 
 ```
-# TODO
 draft_transaction = Person.draft_transaction do
   # When approved, find or create Person A
   person = Person.new(name: 'Person A')
