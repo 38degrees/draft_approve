@@ -144,6 +144,16 @@ approved_draft_transactions = DraftTransaction.approved
 rejected_draft_transactions = DraftTransaction.rejected
 ```
 
+### Errors
+
+If an error occurs while approving a transaction, the error will cause the transaction to fail, so none of the draft changes will be applied. The Draft Transaction will have its `status` set to `approval_error`, and its `error` column will contain more information (the error and the backtrace).
+
+All Draft Transactions with an error can be found using the following:
+
+```ruby
+errored_draft_transactions = DraftTransaction.approval_error
+```
+
 ### Advanced usage
 
 #### Who created a draft?
