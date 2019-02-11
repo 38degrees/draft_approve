@@ -64,17 +64,31 @@ Call `draft_save!` to save a draft of a new model, or save draft changes to an e
 
 Call `draft_destroy!` to draft the deletion of the model.
 
+There are also convenience methods `draft_create!` and `draft_update!`.
+
 For example:
 
 ```ruby
+### CREATE EXAMPLES
+
 # Save draft of a new model
 person = Person.new(name: 'new person')
 draft = person.draft_save!
+
+# Short-hand to save draft of a new model
+draft = Person.draft_create!(name: 'new person')
+
+### UPDATE EXAMPLES
 
 # Save draft changes to an existing person
 person = Person.find(1)
 person.name = 'update existing person'
 draft = person.draft_save!
+
+# Short-hand to save draft changes to an existing person
+draft = person.draft_update!(name: 'update existing person')
+
+### DELETE EXAMPLES
 
 # Draft delete an existing person
 person = Person.find(2)
@@ -89,12 +103,12 @@ For example:
 
 ```ruby
 draft_transaction = Person.draft_transaction do
+  # Want reference to person object, so don't use shorthand draft_create! method
   person = Person.new(name: 'new person name')
   person.draft_save!
 
   existing_contact_address = ContactAddress.find(1)
-  existing_contact_address.person = person
-  existing_contact_address.draft_save!
+  existing_contact_address.draft_update!(person: person)
 
   ContactAddress.find(2).draft_destroy!
 end
@@ -198,7 +212,7 @@ When a Draft Transaction is approved, all drafts within the transaction are appl
 
 Note that `create!` is a _class_ level ActiveRecord method, while `update!` and `destroy!` are _instance_ level ActiveRecord methods.
 
-When saving drafts, you may override the method used to save the changes by passing an options hash to the `draft_save!` or `draft_destroy!` methods.
+When saving drafts, you may override the method used to save the changes by passing an options hash to the `draft_save!` or `draft_destroy!` methods. You are not able to do this with the convenience `draft_create!` or `draft_update!` methods.
 
 For example:
 
