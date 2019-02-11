@@ -212,7 +212,7 @@ When a Draft Transaction is approved, all drafts within the transaction are appl
 
 Note that `create!` is a _class_ level ActiveRecord method, while `update!` and `destroy!` are _instance_ level ActiveRecord methods.
 
-When saving drafts, you may override the method used to save the changes by passing an options hash to the `draft_save!` or `draft_destroy!` methods.
+When saving drafts, you may override the method used to save the changes by passing an options hash to the `draft_save!` or `draft_destroy!` methods. You are not able to do this with the convenience `draft_create!` or `draft_update!` methods.
 
 For example:
 
