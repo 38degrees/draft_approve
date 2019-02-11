@@ -202,6 +202,21 @@ draft_transaction = Person.draft_transaction(extra_data: extra_data) do
 end
 ```
 
+#### Skipping validations when saving drafts
+
+By default, models will have their ActiveRecords validations checked before a draft is saved. This prevents invalid drafts from being persisted, which would just fail validation when the Draft Transaction is approved anyway.
+
+_Side note - when saving a draft only ActiveRecord validations are checked. Since the draft data is not written to your application table, database-only validations cannot be checked!_
+
+If you would like to skip checking ActiveRecord validations when saving a draft, you may pass the `validate: false` option to `draft_save`, for example:
+
+```
+person = Person.new
+person.draft_save!(validate: false)
+```
+
+Validations will still run when the draft is approved, so this option is not especially useful unless combined with a custom method for creating or updating the record (see below).
+
 #### Custom methods for creating, updating and deleting data
 
 When a Draft Transaction is approved, all drafts within the transaction are applied, meaning the changes within the draft are made live on the database. This is acheived by calling suitable ActiveRecord methods. The default methods used by the DraftApprove gem are:
