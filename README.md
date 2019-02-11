@@ -206,7 +206,7 @@ end
 
 By default, models will have their ActiveRecords validations checked before a draft is saved. This prevents invalid drafts from being persisted, which would just fail validation when the Draft Transaction is approved anyway.
 
-_Side note - when saving a draft only ActiveRecord validations are checked. Since the draft data is not written to your application table, database-only validations cannot be checked!_
+_Side note - when saving a draft, only ActiveRecord validations are checked. Since the draft data is not written to your application table, database-only validations cannot be checked!_
 
 If you would like to skip checking ActiveRecord validations when saving a draft, you may pass the `validate: false` option to `draft_save`, for example:
 
