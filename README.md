@@ -64,17 +64,31 @@ Call `draft_save!` to save a draft of a new model, or save draft changes to an e
 
 Call `draft_destroy!` to draft the deletion of the model.
 
+There are also convenience methods `draft_create!` and `draft_update!`.
+
 For example:
 
 ```ruby
+### CREATE EXAMPLES
+
 # Save draft of a new model
 person = Person.new(name: 'new person')
 draft = person.draft_save!
+
+# Short-hand to save draft of a new model
+draft = Person.draft_create!(name: 'new person')
+
+### UPDATE EXAMPLES
 
 # Save draft changes to an existing person
 person = Person.find(1)
 person.name = 'update existing person'
 draft = person.draft_save!
+
+# Short-hand to save draft changes to an existing person
+draft = person.draft_update!(name: 'update existing person')
+
+### DELETE EXAMPLES
 
 # Draft delete an existing person
 person = Person.find(2)
