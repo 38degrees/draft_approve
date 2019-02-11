@@ -42,7 +42,7 @@ $ rails db:migrate
 
 Add `acts_as_draftable` to all models you'd like to be draftable. For example:
 
-```
+```ruby
 # app/models/person.rb
 class Person < ActiveRecord::Base
   has_many :contact_addresses
@@ -66,7 +66,7 @@ Call `draft_destroy!` to draft the deletion of the model.
 
 For example:
 
-```
+```ruby
 # Save draft of a new model
 person = Person.new(name: 'new person')
 draft = person.save_draft!
@@ -87,7 +87,7 @@ If you want to ensure multiple related changes are all approved, or all rejected
 
 For example:
 
-```
+```ruby
 draft_transaction = Person.draft_transaction do
   person = Person.new(name: 'new person name')
   person.save_draft!
@@ -108,7 +108,7 @@ Regardless of how a draft was created, a Draft Transaction is always created, an
 
 For example:
 
-```
+```ruby
 # If you have reference to a Draft object
 draft.draft_transaction.approve_changes!(reviewed_by: 'my_username', review_reason: 'Looks Good!')
 
@@ -122,7 +122,7 @@ This will reject all changes in all drafts within the Draft Transaction (which m
 
 For example:
 
-```
+```ruby
 # If you have reference to a Draft object
 draft.draft_transaction.reject_changes!(reviewed_by: 'my_username', review_reason: 'Nope!')
 
@@ -136,12 +136,22 @@ As discussed, all drafts are created inside a Draft Transaction, and it is these
 
 You can find all Draft Transactions with a particular status using the following methods:
 
-```
+```ruby
 pending_draft_transactions = DraftTransaction.pending_approval
 
 approved_draft_transactions = DraftTransaction.approved
 
 rejected_draft_transactions = DraftTransaction.rejected
+```
+
+### Errors
+
+If an error occurs while approving a transaction, the error will cause the transaction to fail, so none of the draft changes will be applied. The Draft Transaction will have its `status` set to `approval_error`, and its `error` column will contain more information (the error and the backtrace).
+
+All Draft Transactions with an error can be found using the following:
+
+```ruby
+errored_draft_transactions = DraftTransaction.approval_error
 ```
 
 ### Advanced usage
@@ -152,7 +162,7 @@ When creating a Draft Transaction, you may pass in a `created_by` string. This c
 
 For example:
 
-```
+```ruby
 draft_transaction = Person.draft_transaction(created_by: 'UserA') do
   Person.new(name: 'new person name').save_draft!
 end
@@ -166,7 +176,7 @@ Possible use-cases for the extra data hash are storing which users or roles are 
 
 For example:
 
-```
+```ruby
 extra_data = {
   'can_be_approved_by' => ['SuperAdminRole', 'UserB'],
   'data_source_url' => 'https://en.wikipedia.org/wiki/RubyGems',
@@ -192,7 +202,7 @@ When saving drafts, you may override the method used to save the changes by pass
 
 For example:
 
-```
+```ruby
 draft_transaction = Person.draft_transaction do
   # When approved, find or create Person A
   person = Person.new(name: 'Person A')
