@@ -5,7 +5,7 @@ module DraftApprove
     module InstanceMethods
       ##### Basic DraftApprove instance methods #####
 
-      def save_draft!(options = nil)
+      def draft_save!(options = nil)
         if self.new_record?
           DraftApprove::Persistor.write_draft_from_model(Draft::CREATE, self, options)
         else
@@ -23,7 +23,7 @@ module DraftApprove
       # Returns the resulting draft
       def draft_update!(attributes)
         self.assign_attributes(attributes)
-        self.save_draft!
+        self.draft_save!
       end
     end
   end

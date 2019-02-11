@@ -18,7 +18,7 @@ module DraftApprove
       # Expects an attributes hash, like the ActiveRecord create / create! methods
       # Returns the resulting draft
       def draft_create!(attributes)
-        self.new(attributes).save_draft!
+        self.new(attributes).draft_save!
       end
 
       # Expects an attributes hash to find an instance or create a draft
@@ -48,7 +48,7 @@ module DraftApprove
           yield(instance)
         end
 
-        instance.save_draft!
+        instance.draft_save!
 
         return instance
       end

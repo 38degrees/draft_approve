@@ -60,7 +60,7 @@ end
 
 ### Create a draft for a single object
 
-Call `save_draft!` to save a draft of a new model, or save draft changes to an existing model.
+Call `draft_save!` to save a draft of a new model, or save draft changes to an existing model.
 
 Call `draft_destroy!` to draft the deletion of the model.
 
@@ -69,12 +69,12 @@ For example:
 ```ruby
 # Save draft of a new model
 person = Person.new(name: 'new person')
-draft = person.save_draft!
+draft = person.draft_save!
 
 # Save draft changes to an existing person
 person = Person.find(1)
 person.name = 'update existing person'
-draft = person.save_draft!
+draft = person.draft_save!
 
 # Draft delete an existing person
 person = Person.find(2)
@@ -83,18 +83,18 @@ draft = person.draft_destroy!
 
 ### Create multiple related drafts
 
-If you want to ensure multiple related changes are all approved, or all rejected, as a single block, use a Draft Transaction. You do this by calling the `draft_transaction` method on any draftable model class, and passing it a block where all your drafts are saved. You use the same `save_draft!` and `draft_destroy!` methods within the Draft Transaction.
+If you want to ensure multiple related changes are all approved, or all rejected, as a single block, use a Draft Transaction. You do this by calling the `draft_transaction` method on any draftable model class, and passing it a block where all your drafts are saved. You use the same `draft_save!` and `draft_destroy!` methods within the Draft Transaction.
 
 For example:
 
 ```ruby
 draft_transaction = Person.draft_transaction do
   person = Person.new(name: 'new person name')
-  person.save_draft!
+  person.draft_save!
 
   existing_contact_address = ContactAddress.find(1)
   existing_contact_address.person = person
-  existing_contact_address.save_draft!
+  existing_contact_address.draft_save!
 
   ContactAddress.find(2).draft_destroy!
 end
@@ -164,7 +164,7 @@ For example:
 
 ```ruby
 draft_transaction = Person.draft_transaction(created_by: 'UserA') do
-  Person.new(name: 'new person name').save_draft!
+  Person.new(name: 'new person name').draft_save!
 end
 ```
 
@@ -184,7 +184,7 @@ extra_data = {
 }
 
 draft_transaction = Person.draft_transaction(extra_data: extra_data) do
-  Person.new(name: 'new person name').save_draft!
+  Person.new(name: 'new person name').draft_save!
 end
 ```
 
@@ -192,13 +192,13 @@ end
 
 When a Draft Transaction is approved, all drafts within the transaction are applied, meaning the changes within the draft are made live on the database. This is acheived by calling suitable ActiveRecord methods. The default methods used by the DraftApprove gem are:
 
-* `create!` for new models saved with `save_draft!`
-* `update!` for existing models which have been modified and saved with `save_draft!`
+* `create!` for new models saved with `draft_save!`
+* `update!` for existing models which have been modified and saved with `draft_save!`
 * `destroy!` for models which have had `draft_destroy!` called on them
 
 Note that `create!` is a _class_ level ActiveRecord method, while `update!` and `destroy!` are _instance_ level ActiveRecord methods.
 
-When saving drafts, you may override the method used to save the changes by passing an options hash to the `save_draft!` or `draft_destroy!` methods.
+When saving drafts, you may override the method used to save the changes by passing an options hash to the `draft_save!` or `draft_destroy!` methods.
 
 For example:
 
@@ -206,12 +206,12 @@ For example:
 draft_transaction = Person.draft_transaction do
   # When approved, find or create Person A
   person = Person.new(name: 'Person A')
-  person.save_draft!(create_method: :find_or_create_by!)
+  person.draft_save!(create_method: :find_or_create_by!)
   
   # When approved, update the record ignoring validations
   existing_person = Person.find(1)
   existing_person.birth_date = '1800-01-01'
-  existing_person.save_draft!(update_method: :update_columns)
+  existing_person.draft_save!(update_method: :update_columns)
 
   # When approved, delete the record directly in the database without any ActiveRecord callbacks
   Person.find(2).draft_destroy!(delete_method: :delete)

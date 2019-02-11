@@ -450,7 +450,7 @@ def dummy_record_class
 end
 
 def create_dummy_draft_record!(record_name)
-  dummy_record_class.new(name: record_name).save_draft!
+  dummy_record_class.new(name: record_name).draft_save!
 end
 
 def dummy_draft_record_count(record_name)

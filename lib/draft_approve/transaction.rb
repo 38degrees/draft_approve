@@ -30,7 +30,7 @@ module DraftApprove
           yield
         end
 
-        # ensure_in_draft_transaction is used in model.save_draft! method calls
+        # ensure_in_draft_transaction is used in model.draft_save! method calls
         # so we want to return the result of the yield (a draft object) to the caller
         return yield_return
       end

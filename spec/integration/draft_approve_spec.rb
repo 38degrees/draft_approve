@@ -11,7 +11,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
         # Create the draft
         expect do
-          draft = Role.new(name: role_name).save_draft!
+          draft = Role.new(name: role_name).draft_save!
         end.to change { Draft.count }.by(1).and change { DraftTransaction.count }.by(1)
 
         # Approve the draft
@@ -33,7 +33,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
         # Create the draft
         expect do
           model.name = role_name
-          draft = model.save_draft!
+          draft = model.draft_save!
         end.to change { Draft.count }.by(1).and change { DraftTransaction.count }.by(1)
 
         # Approve the draft
@@ -101,15 +101,15 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
         # Save drafts of all the unpersisted records, to create a complex chain of drafts in the correct order
         expect do
           draft_transaction = Gender.draft_transaction do
-            gender.save_draft!
-            person.save_draft!
-            org.save_draft!
-            role.save_draft!
-            membership.save_draft!
-            contact_type.save_draft!
-            person_contact.save_draft!
-            org_contact.save_draft!
-            member_contact.save_draft!
+            gender.draft_save!
+            person.draft_save!
+            org.draft_save!
+            role.draft_save!
+            membership.draft_save!
+            contact_type.draft_save!
+            person_contact.draft_save!
+            org_contact.draft_save!
+            member_contact.draft_save!
           end
         end.to change { DraftTransaction.count }.by(1).and change { Draft.count }.by(9)
 
@@ -150,42 +150,42 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
             person_contact.contactable = person
             person_contact.label = person_contact_label
             person_contact.value = person_contact_value
-            person_contact.save_draft!
+            person_contact.draft_save!
 
             org_contact.contact_address_type = contact_type
             org_contact.contactable = org
             org_contact.label = org_contact_label
             org_contact.value = org_contact_value
-            org_contact.save_draft!
+            org_contact.draft_save!
 
             member_contact.contact_address_type = contact_type
             member_contact.contactable = membership
             member_contact.label = member_contact_label
             member_contact.value = member_contact_value
-            member_contact.save_draft!
+            member_contact.draft_save!
 
             membership.person = person
             membership.organization = org
             membership.role = role
             membership.start_date = membership_start
-            membership.save_draft!
+            membership.draft_save!
 
             contact_type.name = contact_type_name
-            contact_type.save_draft!
+            contact_type.draft_save!
 
             person.name = person_name
             person.gender = gender
             person.birth_date = person_birthday
-            person.save_draft!
+            person.draft_save!
 
             org.name = organization_name
-            org.save_draft!
+            org.draft_save!
 
             role.name = role_name
-            role.save_draft!
+            role.draft_save!
 
             gender.name = gender_name
-            gender.save_draft!
+            gender.draft_save!
           end
         end.to change { DraftTransaction.count }.by(1).and change { Draft.count }.by(9)
 
@@ -412,7 +412,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
           draft_transaction = Person.draft_transaction do
             # no-op draft for gender
             gender.name = gender_name
-            gender.save_draft!
+            gender.draft_save!
 
             # real change for person
             person.draft_update!(birth_date: person_birthday_new)
@@ -422,7 +422,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
             # real change for role
             role.updated_at = role_updated_at_new
-            role.save_draft!
+            role.draft_save!
 
             # real delete for membership
             membership.draft_destroy!
@@ -461,7 +461,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
           draft_transaction = Person.draft_transaction do
             # no-op draft for gender
             gender.name = gender_name
-            gender.save_draft!
+            gender.draft_save!
 
             # no-op change for person
             person.draft_update!(birth_date: nil)
@@ -470,13 +470,13 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
             org.draft_update!(name: organization_name)
 
             # no-op change for role
-            role.save_draft!
+            role.draft_save!
 
             # no-op change for membership
             membership.person = person
             membership.organization = org
             membership.role = role
-            membership.save_draft!
+            membership.draft_save!
           end
         end.to change { DraftTransaction.count }.by(0).and change { Draft.count }.by(0)
 
@@ -496,7 +496,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
         expect do
           draft_transaction_1 = Role.draft_transaction do
             new_role = Role.new(name: new_role_name)
-            new_role.save_draft!(create_method: :create!)
+            new_role.draft_save!(create_method: :create!)
           end
         end.to change { DraftTransaction.count }.by(1).and change { Draft.count }.by(1)
 
@@ -504,7 +504,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
         expect do
           draft_transaction_2 = Role.draft_transaction do
             new_role = Role.new(name: new_role_name)
-            new_role.save_draft!(create_method: :create!)
+            new_role.draft_save!(create_method: :create!)
           end
         end.to change { DraftTransaction.count }.by(1).and change { Draft.count }.by(1)
 
@@ -535,7 +535,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
         expect do
           draft_transaction_1 = Role.draft_transaction do
             new_role = Role.new(name: new_role_name)
-            new_role.save_draft!(create_method: :find_or_create_by!)
+            new_role.draft_save!(create_method: :find_or_create_by!)
           end
         end.to change { DraftTransaction.count }.by(1).and change { Draft.count }.by(1)
 
@@ -543,7 +543,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
         expect do
           draft_transaction_2 = Role.draft_transaction do
             new_role = Role.new(name: new_role_name)
-            new_role.save_draft!(create_method: :find_or_create_by!)
+            new_role.draft_save!(create_method: :find_or_create_by!)
           end
         end.to change { DraftTransaction.count }.by(1).and change { Draft.count }.by(1)
 
