@@ -388,8 +388,108 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
       end
     end
 
+    context 'when some no-op drafts are saved' do
+      # Want to check that updated_at doesn't change, but the database loses
+      # granularity and tests run quickly! So set the updated_at far enough in
+      # the past to make up for the loss in granularity.
+      let!(:create_time) { Time.now - 10.seconds }
+      let!(:db_time_tolerance) { 0.5.seconds }
+
+      # Setup existing records with links between them
+      let(:gender) { Gender.create!(name: gender_name, created_at: create_time, updated_at: create_time) }
+      let(:person) { Person.create!(name: person_name, gender: gender, created_at: create_time, updated_at: create_time) }
+      let(:org) { Organization.create!(name: organization_name, created_at: create_time, updated_at: create_time) }
+      let(:role) { Role.create!(name: role_name, created_at: create_time, updated_at: create_time) }
+      let(:membership) { Membership.create!(person: person, organization: org, role: role, start_date: membership_start, created_at: create_time, updated_at: create_time) }
+
+      let(:person_birthday_new) { DateTime.now }
+
+      let(:role_updated_at_new) { Time.now }
+
+      it 'does not persist no-op drafts, and does not modify records with no-op drafts' do
+        # Declare transaction so we have reference to it outside the first expect block
+        draft_transaction = nil
+
+        # Draft updates
+        expect do
+          draft_transaction = Person.draft_transaction do
+            # no-op draft for gender
+            gender.name = gender_name
+            gender.save_draft!
+
+            # real change for person
+            person.draft_update!(birth_date: person_birthday_new)
+
+            # no-op change for organization
+            org.draft_update!(name: organization_name)
+
+            # real change for role
+            role.updated_at = role_updated_at_new
+            role.save_draft!
+
+            # real delete for membership
+            membership.draft_destroy!
+          end
+        end.to change { DraftTransaction.count }.by(1).and change { Draft.count }.by(3)
+
+        # Approve the draft
+        expect do
+          draft_transaction.approve_changes!
+        end.to change { Gender.count }.by(0)     # 1 no-op
+        .and change { Person.count }.by(0)       # 1 updated
+        .and change { Organization.count }.by(0) # 1 no-op
+        .and change { Role.count }.by(0)         # 1 updated
+        .and change { Membership.count }.by(-1)  # 1 destroyed
+
+        # Check that no-op changes did not modify the updated_at
+        expect(gender.reload.updated_at).to be_within(db_time_tolerance).of(create_time)
+        expect(org.reload.updated_at).to be_within(db_time_tolerance).of(create_time)
+      end
+    end
+
+    context 'when only no-op drafts are saved' do
+      # Setup existing records with links between them
+      let(:gender) { Gender.create!(name: gender_name) }
+      let(:person) { Person.create!(name: person_name, gender: gender) }
+      let(:org) { Organization.create!(name: organization_name) }
+      let(:role) { Role.create!(name: role_name) }
+      let(:membership) { Membership.create!(person: person, organization: org, role: role, start_date: membership_start) }
+
+      it 'does not persist any drafts, and does not persist a draft transaction' do
+        # Declare transaction so we have reference to it outside the first expect block
+        draft_transaction = nil
+
+        # Draft updates
+        expect do
+          draft_transaction = Person.draft_transaction do
+            # no-op draft for gender
+            gender.name = gender_name
+            gender.save_draft!
+
+            # no-op change for person
+            person.draft_update!(birth_date: nil)
+
+            # no-op change for organization
+            org.draft_update!(name: organization_name)
+
+            # no-op change for role
+            role.save_draft!
+
+            # no-op change for membership
+            membership.person = person
+            membership.organization = org
+            membership.role = role
+            membership.save_draft!
+          end
+        end.to change { DraftTransaction.count }.by(0).and change { Draft.count }.by(0)
+
+        # Returned draft transaction should also be nil
+        expect(draft_transaction).to be(nil)
+      end
+    end
+
     context 'when multiple transactions create the same record with create_method create!' do
-      let(:new_role_name)            { 'integration test role name NEW' }
+      let(:new_role_name) { 'integration test role name NEW' }
 
       it 'creates the new record when the first transaction is approved, and the second transaction raises an error' do
         # Declare transactions so we have reference to them outside the expect blocks
@@ -428,7 +528,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
     end
 
     context 'when multiple transactions create the same record with create_method find_or_create_by!' do
-      let(:new_role_name)            { 'integration test role name NEW' }
+      let(:new_role_name) { 'integration test role name NEW' }
 
       it 'creates the new record once only, and both drafts end up pointing to the same draftable record' do
         # Declare transactions so we have reference to them outside the expect blocks

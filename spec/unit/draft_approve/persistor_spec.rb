@@ -47,6 +47,32 @@ RSpec.describe DraftApprove::Persistor do
           draft = subject.write_draft_from_model(action_type, model)
           expect(model.draft_pending_approval).to eq(draft)
         end
+
+        context 'when the changeset is empty' do
+          let(:changes) { {} }
+
+          it 'creates a draft with the fields set correctly' do
+            draft = subject.write_draft_from_model(action_type, model)
+
+            expect(draft.draftable_type).to eq('Role')
+            expect(draft.draftable_id).to be(nil)
+            expect(draft.draftable).to eq(model)
+            expect(draft.draft_action_type).to eq(action_type)
+            expect(draft.draft_changes).to eq(changes)
+          end
+
+          it 'persists the draft to the database with fields set correctly' do
+            draft = subject.write_draft_from_model(action_type, model)
+
+            expect(draft.persisted?).to be(true)
+            draft.reload
+            expect(draft.draftable_type).to eq('Role')
+            expect(draft.draftable_id).to be(nil)
+            expect(draft.draftable).to be(nil)
+            expect(draft.draft_action_type).to eq(action_type)
+            expect(draft.draft_changes).to eq(changes)
+          end
+        end
       end
 
       context 'when the model has already been persisted' do
@@ -98,6 +124,20 @@ RSpec.describe DraftApprove::Persistor do
           draft = subject.write_draft_from_model(action_type, model)
           expect(model.draft_pending_approval).to eq(draft)
         end
+
+        context 'when the changeset is empty' do
+          let(:changes) { {} }
+
+          it 'returns false' do
+            expect(subject.write_draft_from_model(action_type, model)).to be(false)
+          end
+
+          it 'does not persist a draft to the database' do
+            expect do
+              subject.write_draft_from_model(action_type, model)
+            end.not_to change { Draft.count }
+          end
+        end
       end
     end
 
@@ -140,6 +180,32 @@ RSpec.describe DraftApprove::Persistor do
         it 'sets the draft field on the model to the draft object' do
           draft = subject.write_draft_from_model(action_type, model)
           expect(model.draft_pending_approval).to eq(draft)
+        end
+
+        context 'when the changeset is empty' do
+          let(:changes) { {} }
+
+          it 'creates a draft with the fields set correctly' do
+            draft = subject.write_draft_from_model(action_type, model)
+
+            expect(draft.draftable_type).to eq('Role')
+            expect(draft.draftable_id).to eq(model.id)
+            expect(draft.draftable).to eq(model)
+            expect(draft.draft_action_type).to eq(action_type)
+            expect(draft.draft_changes).to eq(changes)
+          end
+
+          it 'persists the draft to the database with fields set correctly' do
+            draft = subject.write_draft_from_model(action_type, model)
+
+            expect(draft.persisted?).to be(true)
+            draft.reload
+            expect(draft.draftable_type).to eq('Role')
+            expect(draft.draftable_id).to eq(model.id)
+            expect(draft.draftable).to eq(model)
+            expect(draft.draft_action_type).to eq(action_type)
+            expect(draft.draft_changes).to eq(changes)
+          end
         end
       end
     end

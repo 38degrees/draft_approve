@@ -44,14 +44,18 @@ module DraftApprove
 
         draft_transaction = DraftApprove::Transaction.current_draft_transaction!
         draft_options = sanitize_options(options)
+        changes = serializer_class.changes_for_model(model)
 
-        model.draft_pending_approval = Draft.create!(
+        # Don't write no-op updates!
+        return false if changes.empty? && action_type == Draft::UPDATE
+
+        return model.draft_pending_approval = Draft.create!(
           draft_transaction: draft_transaction,
           draftable_type: draftable_type,
           draftable_id: draftable_id,
           draft_action_type: action_type,
           draft_serializer: serializer_class.name,
-          draft_changes: serializer_class.changes_for_model(model),
+          draft_changes: changes,
           draft_options: draft_options
         )
       end

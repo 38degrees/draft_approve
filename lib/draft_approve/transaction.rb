@@ -58,6 +58,15 @@ module DraftApprove
           )
           self.current_draft_transaction = draft_transaction
           yield_return = yield
+
+          # If no drafts exist at this point, this is a no-op Draft Transaction,
+          # so no point storing it - destroy it.
+          # NOTE: We don't rollback the transaction here, because non-draft
+          # changes may have occurred inside the yield block!
+          if draft_transaction.drafts.empty?
+            draft_transaction.destroy!
+            draft_transaction = nil
+          end
         ensure
           self.current_draft_transaction = nil
         end
