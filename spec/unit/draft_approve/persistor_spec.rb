@@ -214,7 +214,7 @@ RSpec.describe DraftApprove::Persistor do
       let(:action_type) { Draft::UPDATE }  # Largely irrelevant, just any valid action type
 
       context 'when a valid option is specified as a symbol' do
-        let(:input_options) { { create_method: 'find_or_create_by!' } }
+        let(:input_options) { { create_method: :find_or_create_by! } }
         let(:draft_options) { { 'create_method' => 'find_or_create_by!' } }
 
         it 'creates a draft with options set correctly' do
@@ -243,13 +243,32 @@ RSpec.describe DraftApprove::Persistor do
         end
       end
 
-      context 'when an invalid option is specified' do
+      context 'when only invalid options are specified' do
         let(:input_options) { { foo: 'bar' } }
 
-        it 'raises ArgumentError' do
-          expect do
-            subject.write_draft_from_model(action_type, model, input_options)
-          end.to raise_error(ArgumentError)
+        it 'creates a draft with nil options' do
+          draft = subject.write_draft_from_model(action_type, model, input_options)
+          expect(draft.draft_options).to be(nil)
+        end
+
+        it 'persists the draft to the database with options set to nil' do
+          draft = subject.write_draft_from_model(action_type, model, input_options)
+          expect(draft.reload.draft_options).to be(nil)
+        end
+      end
+
+      context 'when a mixture of valid and invalid options are specified' do
+        let(:input_options) { { 'delete_method' => 'delete', 'foo' => 'bar' } }
+        let(:draft_options) { { 'delete_method' => 'delete' } }
+
+        it 'creates a draft with only the valid options set' do
+          draft = subject.write_draft_from_model(action_type, model, input_options)
+          expect(draft.draft_options).to eq(draft_options)
+        end
+
+        it 'persists the draft to the database with only the valid options set' do
+          draft = subject.write_draft_from_model(action_type, model, input_options)
+          expect(draft.reload.draft_options).to eq(draft_options)
         end
       end
     end
@@ -292,6 +311,13 @@ RSpec.describe DraftApprove::Persistor do
         expect do
           subject.write_draft_from_model(action_type, model)
         end.to raise_error(ActiveRecord::RecordInvalid)
+      end
+
+      context 'when the validate false option is supplied' do
+        it 'writes the invalid draft model to the database' do
+          model.name = nil # make the record invalid
+          expect { subject.write_draft_from_model(action_type, model, { validate: false }) }.to change { Draft.count }.by(1)
+        end
       end
     end
 

@@ -18,7 +18,10 @@ module DraftApprove
 
     def self.write_draft_from_model(action_type, model, options = nil)
       raise(ArgumentError, 'model argument must be present') unless model.present?
-      raise(ActiveRecord::RecordInvalid, model) if model.invalid?
+
+      if validate_model(options) && model.invalid?
+        raise(ActiveRecord::RecordInvalid, model)
+      end
 
       DraftApprove::Transaction.ensure_in_draft_transaction do
         # Now we're in a Transaction, ensure we don't get multiple drafts for the same object
@@ -44,7 +47,7 @@ module DraftApprove
         end
 
         draft_transaction = DraftApprove::Transaction.current_draft_transaction!
-        draft_options = sanitize_options(options)
+        draft_options = sanitize_options_for_db(options)
         changes = serializer_class.changes_for_model(model)
 
         # Don't write no-op updates!
@@ -107,22 +110,26 @@ module DraftApprove
 
     private
 
+    def self.validate_model(options)
+      options ||= {}
+      options.fetch(:validate, true)
+    end
+
     def self.serializer_class
       # TODO: Factor this out into a config setting or something...
       DraftApprove::Serializers::Json
     end
 
-    def self.sanitize_options(options)
-      return nil unless options
+    def self.sanitize_options_for_db(options)
+      return nil if !options || options.empty?
 
       draft_options_keys = [CREATE_METHOD, UPDATE_METHOD, DELETE_METHOD]
 
-      options_with_str_keys = Hash[options.map { |k, v| [k.to_s, v] }]
-      unless (options_with_str_keys.keys - draft_options_keys).empty?
-        raise(ArgumentError, "Unrecognised option(s) when writing draft: #{(options_with_str_keys.keys - draft_options_keys)}")
+      accepted_options = options.each_with_object({}) do |(key, value), accepted_opts|
+        accepted_opts[key.to_s] = value if draft_options_keys.include?(key.to_s)
       end
 
-      return options_with_str_keys
+      return (accepted_options.empty? ? nil : accepted_options)
     end
   end
 end
