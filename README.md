@@ -103,12 +103,12 @@ For example:
 
 ```ruby
 draft_transaction = Person.draft_transaction do
+  # Want reference to person object, so don't use shorthand draft_create! method
   person = Person.new(name: 'new person name')
   person.draft_save!
 
   existing_contact_address = ContactAddress.find(1)
-  existing_contact_address.person = person
-  existing_contact_address.draft_save!
+  existing_contact_address.draft_update!(person: person)
 
   ContactAddress.find(2).draft_destroy!
 end
