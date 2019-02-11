@@ -24,7 +24,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
     end
 
     context 'when updating an existing record' do
-      let(:model) { FactoryBot.create(:role) }
+      let!(:model) { FactoryBot.create(:role) }
 
       it 'updates the record when the draft transaction is approved' do
         # Declare draft so we have reference to it outside the first expect block
@@ -46,7 +46,7 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
     end
 
     context 'when deleting an existing record' do
-      let(:model) { FactoryBot.create(:role) }
+      let!(:model) { FactoryBot.create(:role) }
 
       it 'deletes the record when the draft transaction is approved' do
         # Declare draft so we have reference to it outside the first expect block
@@ -84,15 +84,15 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
     context 'when creating multiple linked new records' do
       # Setup unpersisted records with links between them
-      let(:gender) { Gender.new(name: gender_name) }
-      let(:person) { Person.new(name: person_name, gender: gender, birth_date: person_birthday) }
-      let(:org) { Organization.new(name: organization_name) }
-      let(:role) { Role.new(name: role_name) }
-      let(:membership) { Membership.new(person: person, organization: org, role: role, start_date: membership_start) }
-      let(:contact_type) { ContactAddressType.new(name: contact_type_name) }
-      let(:person_contact) { ContactAddress.new(contact_address_type: contact_type, contactable: person, label: person_contact_label, value: person_contact_value) }
-      let(:org_contact) { ContactAddress.new(contact_address_type: contact_type, contactable: org, label: org_contact_label, value: org_contact_value) }
-      let(:member_contact) { ContactAddress.new(contact_address_type: contact_type, contactable: membership, label: member_contact_label, value: member_contact_value) }
+      let!(:gender) { Gender.new(name: gender_name) }
+      let!(:person) { Person.new(name: person_name, gender: gender, birth_date: person_birthday) }
+      let!(:org) { Organization.new(name: organization_name) }
+      let!(:role) { Role.new(name: role_name) }
+      let!(:membership) { Membership.new(person: person, organization: org, role: role, start_date: membership_start) }
+      let!(:contact_type) { ContactAddressType.new(name: contact_type_name) }
+      let!(:person_contact) { ContactAddress.new(contact_address_type: contact_type, contactable: person, label: person_contact_label, value: person_contact_value) }
+      let!(:org_contact) { ContactAddress.new(contact_address_type: contact_type, contactable: org, label: org_contact_label, value: org_contact_value) }
+      let!(:member_contact) { ContactAddress.new(contact_address_type: contact_type, contactable: membership, label: member_contact_label, value: member_contact_value) }
 
       it 'creates all new records when the draft transaction is approved' do
         # Declare transaction so we have reference to it outside the first expect block
@@ -128,15 +128,15 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
     context 'when updating multiple existing linked records' do
       # Setup existing dummy records to be updated
-      let(:gender) { FactoryBot.create(:gender) }
-      let(:person) { FactoryBot.create(:person) }
-      let(:org) { FactoryBot.create(:organization) }
-      let(:role) { FactoryBot.create(:role) }
-      let(:membership) { FactoryBot.create(:membership) }
-      let(:contact_type) { FactoryBot.create(:contact_address_type) }
-      let(:person_contact) { FactoryBot.create(:contact_address) }
-      let(:org_contact) { FactoryBot.create(:contact_address) }
-      let(:member_contact) { FactoryBot.create(:contact_address) }
+      let!(:gender) { FactoryBot.create(:gender) }
+      let!(:person) { FactoryBot.create(:person) }
+      let!(:org) { FactoryBot.create(:organization) }
+      let!(:role) { FactoryBot.create(:role) }
+      let!(:membership) { FactoryBot.create(:membership) }
+      let!(:contact_type) { FactoryBot.create(:contact_address_type) }
+      let!(:person_contact) { FactoryBot.create(:contact_address) }
+      let!(:org_contact) { FactoryBot.create(:contact_address) }
+      let!(:member_contact) { FactoryBot.create(:contact_address) }
 
       it 'updates all records when the draft transaction is approved' do
         # Declare transaction so we have reference to it outside the first expect block
@@ -242,15 +242,15 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
     context 'when deleting multiple existing linked records' do
       # Setup existing records with links between them
-      let(:gender) { Gender.create!(name: gender_name) }
-      let(:person) { Person.create!(name: person_name, gender: gender, birth_date: person_birthday) }
-      let(:org) { Organization.create!(name: organization_name) }
-      let(:role) { Role.create!(name: role_name) }
-      let(:membership) { Membership.create!(person: person, organization: org, role: role, start_date: membership_start) }
-      let(:contact_type) { ContactAddressType.create!(name: contact_type_name) }
-      let(:person_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: person, label: person_contact_label, value: person_contact_value) }
-      let(:org_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: org, label: org_contact_label, value: org_contact_value) }
-      let(:member_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: membership, label: member_contact_label, value: member_contact_value) }
+      let!(:gender) { Gender.create!(name: gender_name) }
+      let!(:person) { Person.create!(name: person_name, gender: gender, birth_date: person_birthday) }
+      let!(:org) { Organization.create!(name: organization_name) }
+      let!(:role) { Role.create!(name: role_name) }
+      let!(:membership) { Membership.create!(person: person, organization: org, role: role, start_date: membership_start) }
+      let!(:contact_type) { ContactAddressType.create!(name: contact_type_name) }
+      let!(:person_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: person, label: person_contact_label, value: person_contact_value) }
+      let!(:org_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: org, label: org_contact_label, value: org_contact_value) }
+      let!(:member_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: membership, label: member_contact_label, value: member_contact_value) }
 
       it 'deletes all records when the draft transaction is approved' do
         # Declare transaction so we have reference to it outside the first expect block
@@ -286,15 +286,15 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
     context 'when creating, updating and deleting records within the same transaction' do
       # Setup existing records with links between them
-      let(:gender) { Gender.create!(name: gender_name) }
-      let(:person) { Person.create!(name: person_name, gender: gender, birth_date: person_birthday) }
-      let(:org) { Organization.create!(name: organization_name) }
-      let(:role) { Role.create!(name: role_name) }
-      let(:membership) { Membership.create!(person: person, organization: org, role: role, start_date: membership_start) }
-      let(:contact_type) { ContactAddressType.create!(name: contact_type_name) }
-      let(:person_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: person, label: person_contact_label, value: person_contact_value) }
-      let(:org_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: org, label: org_contact_label, value: org_contact_value) }
-      let(:member_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: membership, label: member_contact_label, value: member_contact_value) }
+      let!(:gender) { Gender.create!(name: gender_name) }
+      let!(:person) { Person.create!(name: person_name, gender: gender, birth_date: person_birthday) }
+      let!(:org) { Organization.create!(name: organization_name) }
+      let!(:role) { Role.create!(name: role_name) }
+      let!(:membership) { Membership.create!(person: person, organization: org, role: role, start_date: membership_start) }
+      let!(:contact_type) { ContactAddressType.create!(name: contact_type_name) }
+      let!(:person_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: person, label: person_contact_label, value: person_contact_value) }
+      let!(:org_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: org, label: org_contact_label, value: org_contact_value) }
+      let!(:member_contact) { ContactAddress.create!(contact_address_type: contact_type, contactable: membership, label: member_contact_label, value: member_contact_value) }
 
       let(:new_role_name)            { 'integration test role name NEW' }
       let(:new_org_name)             { 'integration test org name NEW' }
@@ -306,39 +306,36 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
         # Declare transaction so we have reference to it outside the first expect block
         draft_transaction = nil
 
-        # Draft deletion of each model in a sensible order
+        # Draft changes of each model in a sensible order, using various convenience methods to create drafts
         expect do
           draft_transaction = Person.draft_transaction do
-            person.gender = nil
-            person.save_draft!
+            Person.find_and_draft_update_or_create_draft_by!(name: person_name) do |person|
+              person.gender = nil
+            end
 
             gender.draft_destroy!
 
-            new_role = Role.new(name: new_role_name)
-            new_role.save_draft!
+            new_role_draft = Role.draft_create!(name: new_role_name)
 
-            new_org = Organization.new(name: new_org_name)
-            new_org.save_draft!
+            new_org_draft = Organization.draft_create!(name: new_org_name)
 
-            membership.role = new_role
-            membership.organization = new_org
-            membership.save_draft!
+            membership.draft_update!(role: new_role_draft.draftable, organization: new_org_draft.draftable)
 
-            org_contact.contactable = new_org
-            org_contact.save_draft!
+            org_contact.draft_update!(contactable: new_org_draft.draftable)
 
             org.draft_destroy!
 
-            new_contact_type = ContactAddressType.new(name: new_contact_type_name)
-            new_contact_type.save_draft!
+            new_contact_type = ContactAddressType.find_and_draft_update_or_create_draft_by!(
+              name: new_contact_type_name
+            )
 
-            new_person_contact = ContactAddress.new(
+            new_person_contact = ContactAddress.find_and_draft_update_or_create_draft_by!(
               contact_address_type: new_contact_type,
               contactable: person,
-              label: new_person_contact_label,
               value: new_person_contact_value
-            )
-            new_person_contact.save_draft!
+            ) do |contact_address|
+              contact_address.label = new_person_contact_label
+            end
 
             person_contact.draft_destroy!
           end
@@ -396,11 +393,11 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
       let!(:db_time_tolerance) { 0.5.seconds }
 
       # Setup existing records with links between them
-      let(:gender) { Gender.create!(name: gender_name, created_at: create_time, updated_at: create_time) }
-      let(:person) { Person.create!(name: person_name, gender: gender, created_at: create_time, updated_at: create_time) }
-      let(:org) { Organization.create!(name: organization_name, created_at: create_time, updated_at: create_time) }
-      let(:role) { Role.create!(name: role_name, created_at: create_time, updated_at: create_time) }
-      let(:membership) { Membership.create!(person: person, organization: org, role: role, start_date: membership_start, created_at: create_time, updated_at: create_time) }
+      let!(:gender) { Gender.create!(name: gender_name, created_at: create_time, updated_at: create_time) }
+      let!(:person) { Person.create!(name: person_name, gender: gender, created_at: create_time, updated_at: create_time) }
+      let!(:org) { Organization.create!(name: organization_name, created_at: create_time, updated_at: create_time) }
+      let!(:role) { Role.create!(name: role_name, created_at: create_time, updated_at: create_time) }
+      let!(:membership) { Membership.create!(person: person, organization: org, role: role, start_date: membership_start, created_at: create_time, updated_at: create_time) }
 
       let(:person_birthday_new) { DateTime.now }
 
@@ -449,11 +446,11 @@ RSpec.describe 'Draft Approve Scenario Tests', integration: true do
 
     context 'when only no-op drafts are saved' do
       # Setup existing records with links between them
-      let(:gender) { Gender.create!(name: gender_name) }
-      let(:person) { Person.create!(name: person_name, gender: gender) }
-      let(:org) { Organization.create!(name: organization_name) }
-      let(:role) { Role.create!(name: role_name) }
-      let(:membership) { Membership.create!(person: person, organization: org, role: role, start_date: membership_start) }
+      let!(:gender) { Gender.create!(name: gender_name) }
+      let!(:person) { Person.create!(name: person_name, gender: gender) }
+      let!(:org) { Organization.create!(name: organization_name) }
+      let!(:role) { Role.create!(name: role_name) }
+      let!(:membership) { Membership.create!(person: person, organization: org, role: role, start_date: membership_start) }
 
       it 'does not persist any drafts, and does not persist a draft transaction' do
         # Declare transaction so we have reference to it outside the first expect block
