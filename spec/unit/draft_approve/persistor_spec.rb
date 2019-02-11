@@ -284,6 +284,17 @@ RSpec.describe DraftApprove::Persistor do
       end
     end
 
+    context 'when model is not valid' do
+      let(:action_type) { Draft::UPDATE }  # Largely irrelevant, just any valid action type
+
+      it 'raises ActiveRecord::RecordInvalid' do
+        model.name = nil # make the record invalid
+        expect do
+          subject.write_draft_from_model(action_type, model)
+        end.to raise_error(ActiveRecord::RecordInvalid)
+      end
+    end
+
     context 'when model is nil' do
       let(:action_type) { Draft::UPDATE }  # Largely irrelevant, just any valid action type
 

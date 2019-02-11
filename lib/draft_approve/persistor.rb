@@ -17,9 +17,10 @@ module DraftApprove
     DELETE_METHOD = 'delete_method'.freeze
 
     def self.write_draft_from_model(action_type, model, options = nil)
-      DraftApprove::Transaction.ensure_in_draft_transaction do
-        raise(ArgumentError, 'model argument must be present') unless model.present?
+      raise(ArgumentError, 'model argument must be present') unless model.present?
+      raise(ActiveRecord::RecordInvalid, model) if model.invalid?
 
+      DraftApprove::Transaction.ensure_in_draft_transaction do
         # Now we're in a Transaction, ensure we don't get multiple drafts for the same object
         if model.persisted? && Draft.pending_approval.where(draftable: model).count > 0
           raise(DraftApprove::ExistingDraftError, "#{model} has existing draft")
