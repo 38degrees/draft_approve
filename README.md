@@ -262,7 +262,7 @@ If you wish to purposefully save drafts which do not pass validations, see the [
 
 If you are unexpectedly getting `ActiveRecord::RecordInvalid` errors, a _possible_ reason is explicit validations on foreign key columns. For example, the following would fail:
 
-```
+```ruby
 class Person < ActiveRecord::Base
   has_many :contact_addresses
   acts_as_draftable
