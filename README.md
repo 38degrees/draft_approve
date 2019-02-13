@@ -274,6 +274,7 @@ class ContactAddress < ActiveRecord::Base
   acts_as_draftable
 end
 
+# Create a new person, and save it as a draft (note, this means p.id is nil!)
 p = Person.new(name: 'person name')
 p.save_draft!
 
@@ -283,7 +284,7 @@ c.save_draft!  # raises ActiveRecord::RecordInvalid because contact_address.pers
 
 This can be fixed by removing the explicit `presence: true` validation of foreign key columns. Such validations should not be necessary anyway, because by default `belongs_to` relationships validate the associated object is not `nil`.
 
-_Side note: the `belongs_to` validations do not cause errors to be raised when saving a draft, because they check the association is not `nil`. In the example above, it would check `contact_address.person` is not `nil`, which it is not - the `Person` object referred to has not been persisted, but it is not `nil`, so the validation passes._
+_Side note: the `belongs_to` validations do not cause such errors when saving a draft because they check the associated object (eg. `person`) is not `nil` - rather than validating that the component attributes / columns of the association (eg. `person_id`) are not `nil`. In the example above, the `belongs_to` validation would check `contact_address.person` is not `nil`, which it is not - the `Person` object referred to has not been persisted, but it is not `nil`, so the validation passes._
 
 ## Alternative Drafting Gems
 
