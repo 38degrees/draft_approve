@@ -270,7 +270,7 @@ end
 
 class ContactAddress < ActiveRecord::Base
   belongs_to :person
-  validates :person_id, presence: true
+  validates :person_id, presence: true  # This validation is unnecessary and can cause errors
   acts_as_draftable
 end
 
