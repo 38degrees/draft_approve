@@ -274,12 +274,14 @@ class ContactAddress < ActiveRecord::Base
   acts_as_draftable
 end
 
-# Create a new person, and save it as a draft (note, this means p.id is nil!)
-p = Person.new(name: 'person name')
-p.save_draft!
-
-c = ContactAddress.new(person: p)
-c.save_draft!  # raises ActiveRecord::RecordInvalid because contact_address.person_id is nil
+draft_transaction = Person.draft_transaction do
+  # Create a new person, and save it as a draft (note, this means p.id is nil!)
+  p = Person.new(name: 'person name')
+  p.save_draft!
+  
+  c = ContactAddress.new(person: p)
+  c.save_draft!  # raises ActiveRecord::RecordInvalid because contact_address.person_id is nil
+end
 ```
 
 This can be fixed by removing the explicit `presence: true` validation of foreign key columns. Such validations should not be necessary anyway, because by default `belongs_to` relationships validate the associated object is not `nil`.
