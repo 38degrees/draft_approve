@@ -51,4 +51,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "codecov", "~> 0.1"
   spec.add_development_dependency "appraisal", "~> 2.2"
   spec.add_development_dependency "pry", "~> 0.12"
+  spec.add_development_dependency "yard", "~> 0.9.18"
 end

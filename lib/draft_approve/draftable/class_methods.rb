@@ -5,8 +5,20 @@ module DraftApprove
     module ClassMethods
       ##### Basic DraftApprove class methods #####
 
-      # Start a new DraftTransaction to group together all the draft changes
-      # which must be approved and applied together
+      # Starts a new `DraftTransaction` to group together a number of draft
+      # changes that must be approved and applied together.
+      #
+      # @yield the block which creates a group of draft changes that must be
+      #   approved and applied together
+      # @param created_by [String] the person or process responsible for
+      #   creating the draft changes in this transaction
+      # @param extra_data [Hash] any extra metadata to be associated with
+      #   these draft changes
+      #
+      # @return [DraftTransaction, nil] the `DraftTransaction` which was
+      #   created, or `nil` if no draft changes were saved within the given
+      #   block (ie. if approving the `DraftTransaction` would be a
+      #   'no-operation')
       def draft_transaction(created_by: nil, extra_data: nil)
         DraftApprove::Transaction.in_new_draft_transaction(created_by: created_by, extra_data: extra_data) do
           yield
@@ -15,28 +27,57 @@ module DraftApprove
 
       ##### Additional convenience DraftApprove class methods #####
 
-      # Expects an attributes hash, like the ActiveRecord create / create! methods
-      # Returns the resulting draft
+      # Creates a new object with the given attributes, and saves the new object
+      # as a draft.
+      #
+      # @param attributes [Hash] a hash of attribute names to attribute values,
+      #   like the hash expected by the ActiveRecord `create` / `create!`
+      #   methods
+      #
+      # @return [Draft] the resulting `Draft` record (*not* the created
+      #   draftable object)
       def draft_create!(attributes)
         self.new(attributes).draft_save!
       end
 
-      # Expects an attributes hash to find an instance or create a draft
-      # instance, and expects a block which will always execute on the instance,
-      # ie. the block will either update the existing instance and create a
-      # new draft for the instance, or update the newly created draft instance
-      # before it is saved.
+      # Finds an object with the given attributes. If none found, creates a new
+      # object with the given attributes and saves the new object as a draft.
       #
-      # Returns the instance of the object (NOT the draft).
+      # @param attributes [Hash] a hash of attribute names to attribute values,
+      #   like the hash expected by the ActiveRecord `find_or_create_by` method
       #
-      # For example, the following will look for a Person with name 'My Name'.
-      # If the person already existed, it will create a draft update to update
-      # their birth date. If the person does not exist, it will create a draft
-      # to create the person, setting their name and birth date.
+      # @return [Object] the draftable object which was found or created
+      #   (*not* the `Draft` object which may have been saved)
+      def find_or_create_draft_by!(attributes)
+        # Can just use find_and_draft_update_or_create_draft_by with no block
+        return find_and_draft_update_or_create_draft_by(attributes)
+      end
+
+      # Finds an object with the given attributes and draft update it with the
+      # given block, or draft create a new object.
       #
-      # Person.find_and_draft_update_or_create_draft_by!(name: 'My Name') do |p|
-      #   p.birth_date = '1980-01-01'
-      # end
+      # If an object is found matching the given attributes, the given block
+      # is applied to this object and the updates are saved as a draft.
+      #
+      # If no object is found matching the given attributes, a new object is
+      # initialised with the given attributes, and the given block is applied to
+      # this new object before it is saved as a draft.
+      #
+      # @param attributes [Hash] a hash of attribute names to attribute values,
+      #   like the hash expected by the ActiveRecord `find_or_create_by` method
+      # @yield [instance] a block which makes changes to the object instance
+      #   which was found or created using the given attributes hash
+      #
+      # @return [Object] the draftable object which was found and updated, or
+      #   the draftable object which was created (*not* the `Draft` object
+      #   which may have been saved)
+      #
+      # @example
+      #   # Find a person by their name, and draft update their birth date,
+      #   # OR draft create a person with the given name and birth date.
+      #   Person.find_and_draft_update_or_create_draft_by!(name: 'My Name') do |p|
+      #     p.birth_date = '1980-01-01'
+      #   end
       def find_and_draft_update_or_create_draft_by!(attributes)
         instance = self.find_by(attributes)
 
@@ -44,6 +85,8 @@ module DraftApprove
           instance = self.new(attributes)
         end
 
+        # Whether or not this is a new record, execute the block to update
+        # additional, non-find_by attributes
         if block_given?
           yield(instance)
         end
