@@ -43,17 +43,13 @@ $ rails db:migrate
 Add `acts_as_draftable` to all models you'd like to be draftable. For example:
 
 ```ruby
-# app/models/person.rb
 class Person < ActiveRecord::Base
   has_many :contact_addresses
-
   acts_as_draftable
 end
 
-# app/models/contact_address.rb
 class ContactAddress < ActiveRecord::Base
   belongs_to :person
-
   acts_as_draftable
 end
 ```
@@ -257,6 +253,40 @@ end
 ### More examples
 
 Further examples can be seen in the [integration tests](spec/integration).
+
+## Frequently Asked Questions
+
+### Why am I getting `ActiveRecord::RecordInvalid` errors when I save a draft?
+
+If you wish to purposefully save drafts which do not pass validations, see the [Skipping validations when saving drafts](#skipping-validations-when-saving-drafts) section.
+
+If you are unexpectedly getting `ActiveRecord::RecordInvalid` errors, a _possible_ reason is explicit validations on foreign key columns. For example, the following would fail:
+
+```ruby
+class Person < ActiveRecord::Base
+  has_many :contact_addresses
+  acts_as_draftable
+end
+
+class ContactAddress < ActiveRecord::Base
+  belongs_to :person
+  validates :person_id, presence: true  # This validation is unnecessary and can cause errors
+  acts_as_draftable
+end
+
+draft_transaction = Person.draft_transaction do
+  # Create a new person, and save it as a draft (note, this means p.id is nil!)
+  p = Person.new(name: 'person name')
+  p.save_draft!
+  
+  c = ContactAddress.new(person: p)
+  c.save_draft!  # raises ActiveRecord::RecordInvalid because contact_address.person_id is nil
+end
+```
+
+This can be fixed by removing the explicit `presence: true` validation of foreign key columns. Such validations should not be necessary anyway, because by default `belongs_to` relationships validate the associated object is not `nil`.
+
+_Side note: the `belongs_to` validations do not cause such errors when saving a draft because they check the associated object (eg. `person`) is not `nil` - rather than validating that the component attributes / columns of the association (eg. `person_id`) are not `nil`. In the example above, the `belongs_to` validation would check `contact_address.person` is not `nil`, which it is not - the `Person` object referred to has not been persisted, but it is not `nil`, so the validation passes._
 
 ## Alternative Drafting Gems
 
