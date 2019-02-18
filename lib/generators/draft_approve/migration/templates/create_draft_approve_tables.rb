@@ -12,12 +12,12 @@ class CreateDraftApproveTables < ActiveRecord::Migration<%= migration_version %>
     end
 
     create_table :drafts, comment: 'Drafts of changes to be approved' do |t|
-      t.references        :draft_transaction, null: false, index: true, foreign_key: true
-      t.references        :draftable,         null: true,  index: true, polymorphic: true
-      t.string            :draft_action_type, null: false
-      t.string            :draft_serializer,  null: false
-      t.<%= json_type %>  :draft_changes,     null: false
-      t.<%= json_type %>  :draft_options,     null: true
+      t.references        :draft_transaction,   null: false, index: true, foreign_key: true
+      t.references        :draftable,           null: true,  index: true, polymorphic: true
+      t.string            :draft_action_type,   null: false
+      t.string            :draft_serialization, null: false
+      t.<%= json_type %>  :draft_changes,       null: false
+      t.<%= json_type %>  :draft_options,       null: true
 
       t.timestamps
     end

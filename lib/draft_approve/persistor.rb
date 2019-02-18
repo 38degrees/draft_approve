@@ -1,6 +1,6 @@
 require 'draft_approve/errors'
 require 'draft_approve/models/draft'
-require 'draft_approve/serializers/json'
+require 'draft_approve/serialization/json'
 
 module DraftApprove
   class Persistor
@@ -58,7 +58,7 @@ module DraftApprove
           draftable_type: draftable_type,
           draftable_id: draftable_id,
           draft_action_type: action_type,
-          draft_serializer: serializer_class.name,
+          draft_serialization: serialization_module.name,
           draft_changes: changes,
           draft_options: draft_options
         )
@@ -66,10 +66,12 @@ module DraftApprove
     end
 
     def self.write_model_from_draft(draft)
-      if serializer_class_name = draft.draft_serializer
-        serializer = Object.const_get(serializer_class_name)
+      if serialization_module_name = draft.draft_serialization
+        # Use the serializer persisted with the draft
+        serializer = Object.const_get(serialization_module_name).get_serializer
       else
-        serializer = serializer_class # Use default serializer
+        # Use default serializer
+        serializer = serializer_class
       end
       new_values_hash = serializer.new_values_for_draft(draft)
       options = draft.draft_options || {}
@@ -116,8 +118,12 @@ module DraftApprove
     end
 
     def self.serializer_class
+      serialization_module.get_serializer
+    end
+
+    def self.serialization_module
       # TODO: Factor this out into a config setting or something...
-      DraftApprove::Serializers::Json
+      DraftApprove::Serialization::Json
     end
 
     def self.sanitize_options_for_db(options)
