@@ -454,5 +454,7 @@ def create_dummy_draft_record!(record_name)
 end
 
 def dummy_draft_record_count(record_name)
-  Draft.where(draftable_type: dummy_record_class.name, draft_changes: { 'name' => [nil, record_name] }).count
+  #Draft.where(draftable_type: dummy_record_class.name, draft_changes: { 'name' => [nil, record_name] }).count
+  drafts = Draft.where(draftable_type: dummy_record_class.name)
+  drafts.select { |d| d.draft_changes == { 'name' => [nil, record_name] } }.size
 end

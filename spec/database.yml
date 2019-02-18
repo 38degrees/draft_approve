@@ -1,3 +1,12 @@
+postgres:
+  adapter: postgresql
+  encoding: unicode
+  database: draft_approve_test
+  username: draft_approve_test
+  password: draft_approve_test
+  port: 5432
+  host: 'localhost'
+
 sqlite:
   adapter: sqlite3
   database: ":memory:"

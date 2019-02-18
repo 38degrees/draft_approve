@@ -5,6 +5,14 @@ module DraftApprove
     module InstanceMethods
       ##### Basic DraftApprove instance methods #####
 
+      # Whether this object is draftable. Helper method to identify draftable
+      # objects.
+      #
+      # @return [Boolean] true
+      def draftable?
+        true
+      end
+
       # Saves any changes to the object as a draft.
       #
       # This method may be called both on a new object which has not been

@@ -29,8 +29,11 @@ RSpec.configure do |config|
   config.before(:suite) do
     # Establist SQLite connection
     ActiveRecord::Base.configurations = YAML.load_file(File.expand_path('database.yml', File.dirname(__FILE__)))
-    ActiveRecord::Base.establish_connection(:sqlite)
+    ActiveRecord::Base.establish_connection(:postgres)
     ActiveRecord::Migration.verbose = false
+
+    # Teardown any tables which may be erroneously leftover from previous runs
+    database_teardown
 
     # Load the dummy app schema
     # TODO: Would be better to remove the draft tables from the dummy app schema
@@ -51,12 +54,19 @@ RSpec.configure do |config|
       example.run
     end
   end
+
+  config.after(:suite) do
+    # Teardown tables
+    database_teardown
+  end
 end
 
-# May need this to teardown non-in-memory databases in an after(:suite) step in future...
+# Teardown non-in-memory databases
 def database_teardown
-  conn = ActiveRecord::Base.connection
-  conn.tables.each do |table_name|
-    conn.execute("DROP TABLE #{table_name}")
+  unless [:sqlite].include? ActiveRecord::Base.connection.adapter_name.downcase.to_sym
+    conn = ActiveRecord::Base.connection
+    conn.tables.each do |table_name|
+      conn.execute("DROP TABLE #{table_name} CASCADE")
+    end
   end
 end

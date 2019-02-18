@@ -47,6 +47,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "database_cleaner", "~> 1.7"
   spec.add_development_dependency "sqlite3", "~> 1.3"
+  spec.add_development_dependency "pg", ">= 0.18", "< 2.0"
   spec.add_development_dependency "factory_bot", "~> 4.11"
   spec.add_development_dependency "codecov", "~> 0.1"
   spec.add_development_dependency "appraisal", "~> 2.2"
