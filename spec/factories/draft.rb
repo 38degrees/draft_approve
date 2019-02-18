@@ -3,7 +3,6 @@ FactoryBot.define do
     association :draft_transaction
     association :draftable, factory: :person
     draft_action_type { Draft::UPDATE }
-    draft_serialization { DraftApprove::Serialization::Json.name }
     draft_changes { {} }
   end
 

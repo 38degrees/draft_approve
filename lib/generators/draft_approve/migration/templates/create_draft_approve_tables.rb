@@ -6,6 +6,7 @@ class CreateDraftApproveTables < ActiveRecord::Migration<%= migration_version %>
       t.string            :reviewed_by,   null: true,  index: true,  comment: 'The user who approved or rejected the drafts in this transaction'
       t.string            :review_reason, null: true,  index: false, comment: 'The reason given by the user for approving or rejecting the drafts in this transaction'
       t.string            :error,         null: true,  index: false, comment: 'If there was an error while approving this transaction, more information on the error that occurred'
+      t.string            :serialization, null: false, index: false, comment: 'The serialization module used for all drafts within this transaction'
       t.<%= json_type %>  :extra_data,    null: true,  index: false, comment: 'Any extra data associated with this draft transaction, eg. users / roles who are authorised to approve the changes'
 
       t.timestamps
@@ -15,7 +16,6 @@ class CreateDraftApproveTables < ActiveRecord::Migration<%= migration_version %>
       t.references        :draft_transaction,   null: false, index: true, foreign_key: true
       t.references        :draftable,           null: true,  index: true, polymorphic: true
       t.string            :draft_action_type,   null: false
-      t.string            :draft_serialization, null: false
       t.<%= json_type %>  :draft_changes,       null: false
       t.<%= json_type %>  :draft_options,       null: true
 

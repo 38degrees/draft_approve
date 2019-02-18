@@ -30,7 +30,6 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_id).to be(nil)
           expect(draft.draftable).to eq(model)
           expect(draft.draft_action_type).to eq(action_type)
-          expect(draft.draft_serialization).to eq(default_draft_serialization.name)
           expect(draft.draft_changes).to eq(changes)
         end
 
@@ -43,7 +42,6 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_id).to be(nil)
           expect(draft.draftable).to be(nil)
           expect(draft.draft_action_type).to eq(action_type)
-          expect(draft.draft_serialization).to eq(default_draft_serialization.name)
           expect(draft.draft_changes).to eq(changes)
         end
 
@@ -62,7 +60,6 @@ RSpec.describe DraftApprove::Persistor do
             expect(draft.draftable_id).to be(nil)
             expect(draft.draftable).to eq(model)
             expect(draft.draft_action_type).to eq(action_type)
-            expect(draft.draft_serialization).to eq(default_draft_serialization.name)
             expect(draft.draft_changes).to eq(changes)
           end
 
@@ -75,7 +72,6 @@ RSpec.describe DraftApprove::Persistor do
             expect(draft.draftable_id).to be(nil)
             expect(draft.draftable).to be(nil)
             expect(draft.draft_action_type).to eq(action_type)
-            expect(draft.draft_serialization).to eq(default_draft_serialization.name)
             expect(draft.draft_changes).to eq(changes)
           end
         end
@@ -111,7 +107,6 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_id).to eq(model.id)
           expect(draft.draftable).to eq(model)
           expect(draft.draft_action_type).to eq(action_type)
-          expect(draft.draft_serialization).to eq(default_draft_serialization.name)
           expect(draft.draft_changes).to eq(changes)
         end
 
@@ -124,7 +119,6 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_id).to eq(model.id)
           expect(draft.draftable).to eq(model)
           expect(draft.draft_action_type).to eq(action_type)
-          expect(draft.draft_serialization).to eq(default_draft_serialization.name)
           expect(draft.draft_changes).to eq(changes)
         end
 
@@ -170,7 +164,6 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_id).to eq(model.id)
           expect(draft.draftable).to eq(model)
           expect(draft.draft_action_type).to eq(action_type)
-          expect(draft.draft_serialization).to eq(default_draft_serialization.name)
           expect(draft.draft_changes).to eq(changes)
         end
 
@@ -183,7 +176,6 @@ RSpec.describe DraftApprove::Persistor do
           expect(draft.draftable_id).to eq(model.id)
           expect(draft.draftable).to eq(model)
           expect(draft.draft_action_type).to eq(action_type)
-          expect(draft.draft_serialization).to eq(default_draft_serialization.name)
           expect(draft.draft_changes).to eq(changes)
         end
 
@@ -202,7 +194,6 @@ RSpec.describe DraftApprove::Persistor do
             expect(draft.draftable_id).to eq(model.id)
             expect(draft.draftable).to eq(model)
             expect(draft.draft_action_type).to eq(action_type)
-            expect(draft.draft_serialization).to eq(default_draft_serialization.name)
             expect(draft.draft_changes).to eq(changes)
           end
 
@@ -215,7 +206,6 @@ RSpec.describe DraftApprove::Persistor do
             expect(draft.draftable_id).to eq(model.id)
             expect(draft.draftable).to eq(model)
             expect(draft.draft_action_type).to eq(action_type)
-            expect(draft.draft_serialization).to eq(default_draft_serialization.name)
             expect(draft.draft_changes).to eq(changes)
           end
         end
@@ -328,7 +318,9 @@ RSpec.describe DraftApprove::Persistor do
       context 'when the validate false option is supplied' do
         it 'writes the invalid draft model to the database' do
           model.name = nil # make the record invalid
-          expect { subject.write_draft_from_model(action_type, model, { validate: false }) }.to change { Draft.count }.by(1)
+          expect do
+            subject.write_draft_from_model(action_type, model, { validate: false })
+          end.to change { Draft.count }.by(1)
         end
       end
     end
@@ -396,7 +388,6 @@ RSpec.describe DraftApprove::Persistor do
           draftable_type: model.class.name,
           draftable_id: nil,
           draft_action_type: Draft::CREATE,
-          draft_serialization: serialization.name,
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
           draft_options: options
         )
@@ -445,7 +436,6 @@ RSpec.describe DraftApprove::Persistor do
           :draft,
           draftable: model,
           draft_action_type: Draft::UPDATE,
-          draft_serialization: serialization.name,
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
           draft_options: options
         )
@@ -489,7 +479,6 @@ RSpec.describe DraftApprove::Persistor do
           :draft,
           draftable: model,
           draft_action_type: Draft::DELETE,
-          draft_serialization: serialization.name,
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
           draft_options: options
         )
@@ -524,12 +513,19 @@ RSpec.describe DraftApprove::Persistor do
     end
 
     context 'when writing a model from a draft with an unknown serializer' do
+      let(:draft_transaction) do
+        FactoryBot.create(
+          :draft_transaction,
+          serialization: 'DraftApprove::Serialization::NonExistantSerializer'
+        )
+      end
+
       let(:draft) do
         FactoryBot.create(
           :draft,
+          draft_transaction: draft_transaction,
           draftable: model,
           draft_action_type: Draft::UPDATE,
-          draft_serialization: 'DraftApprove::Serialization::NonExistantSerializer',
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
           draft_options: {}
         )
@@ -549,7 +545,6 @@ RSpec.describe DraftApprove::Persistor do
           :skip_validations,
           draftable: model,
           draft_action_type: 'NonExistantActionType',
-          draft_serialization: serialization.name,
           draft_changes: {},  # Irrlevant, since new_values_for_draft is mocked
           draft_options: {}
         )

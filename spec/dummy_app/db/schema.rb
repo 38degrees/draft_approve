@@ -15,7 +15,7 @@ ActiveRecord::Schema.define do
     t.string "value", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["contact_type_id"], name: "index_contact_addresses_on_contact_address_type_id"
+    t.index ["contact_address_type_id"], name: "index_contact_addresses_on_contact_address_type"
     t.index ["contactable_type", "contactable_id"], name: "index_contact_addresses_on_contactable"
   end
 
@@ -86,6 +86,7 @@ ActiveRecord::Schema.define do
     t.string :reviewed_by,   null: true,  index: true,  comment: 'The user who approved or rejected the drafts in this transaction'
     t.string :review_reason, null: true,  index: false, comment: 'The reason given by the user for approving or rejecting the drafts in this transaction'
     t.string :error,         null: true,  index: false, comment: 'If there was an error while approving this transaction, more information on the error that occurred'
+    t.string :serialization, null: false, index: false, comment: 'The serialization module used for all drafts within this transaction'
     t.json   :extra_data,    null: true,  index: false, comment: 'Any extra data associated with this draft transaction, eg. users / roles who are authorised to approve the changes'
 
     t.timestamps
@@ -95,7 +96,6 @@ ActiveRecord::Schema.define do
     t.references :draft_transaction,   null: false, index: true, foreign_key: true
     t.references :draftable,           null: true,  index: true, polymorphic: true
     t.string     :draft_action_type,   null: false
-    t.string     :draft_serialization, null: false
     t.json       :draft_changes,       null: false
     t.json       :draft_options,       null: true
 

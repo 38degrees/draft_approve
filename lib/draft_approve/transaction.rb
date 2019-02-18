@@ -54,6 +54,7 @@ module DraftApprove
           draft_transaction = DraftTransaction.create!(
             status: DraftTransaction::PENDING_APPROVAL,
             created_by: created_by,
+            serialization: serialization_module,
             extra_data: extra_data
           )
           self.current_draft_transaction = draft_transaction
@@ -73,6 +74,11 @@ module DraftApprove
       end
 
       return draft_transaction, yield_return
+    end
+
+    def self.serialization_module
+      # TODO: Factor this out into a config setting or something...
+      DraftApprove::Serialization::Json
     end
 
     def self.current_draft_transaction

@@ -22,6 +22,14 @@ RSpec.describe DraftApprove::Transaction do
           expect(draft_transaction.status).to eq(DraftTransaction::PENDING_APPROVAL)
         end
 
+        it 'returns a DraftTransaction with the default serialization' do
+          draft_transaction = subject.in_new_draft_transaction do
+            create_dummy_draft_record!(dummy_record_name)
+          end
+
+          expect(draft_transaction.serialization).to eq(DraftApprove::Serialization::Json.name)
+        end
+
         it 'executes the code in the block successfully' do
           expect do
             subject.in_new_draft_transaction do

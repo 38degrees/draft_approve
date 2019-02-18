@@ -48,7 +48,8 @@ module DraftApprove
 
         draft_transaction = DraftApprove::Transaction.current_draft_transaction!
         draft_options = sanitize_options_for_db(options)
-        changes = serializer_class.changes_for_model(model)
+        serializer = serializer_class(draft_transaction)
+        changes = serializer.changes_for_model(model)
 
         # Don't write no-op updates!
         return false if changes.empty? && action_type == Draft::UPDATE
@@ -58,7 +59,6 @@ module DraftApprove
           draftable_type: draftable_type,
           draftable_id: draftable_id,
           draft_action_type: action_type,
-          draft_serialization: serialization_module.name,
           draft_changes: changes,
           draft_options: draft_options
         )
@@ -66,13 +66,7 @@ module DraftApprove
     end
 
     def self.write_model_from_draft(draft)
-      if serialization_module_name = draft.draft_serialization
-        # Use the serializer persisted with the draft
-        serializer = Object.const_get(serialization_module_name).get_serializer
-      else
-        # Use default serializer
-        serializer = serializer_class
-      end
+      serializer = serializer_class(draft.draft_transaction)
       new_values_hash = serializer.new_values_for_draft(draft)
       options = draft.draft_options || {}
 
@@ -117,13 +111,8 @@ module DraftApprove
       options.fetch(:validate, true)
     end
 
-    def self.serializer_class
-      serialization_module.get_serializer
-    end
-
-    def self.serialization_module
-      # TODO: Factor this out into a config setting or something...
-      DraftApprove::Serialization::Json
+    def self.serializer_class(draft_transaction)
+      Object.const_get(draft_transaction.serialization).get_serializer
     end
 
     def self.sanitize_options_for_db(options)
