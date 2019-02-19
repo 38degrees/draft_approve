@@ -1,10 +1,10 @@
 require 'spec_helper'
 
 RSpec.describe DraftApprove::Serialization::Json::Serializer do
-  let(:subject) { DraftApprove::Serialization::Json::Serializer }
-
   let(:const_type) { DraftApprove::Serialization::Json::Helper::TYPE }
   let(:const_id)   { DraftApprove::Serialization::Json::Helper::ID }
+  
+  let(:subject) { DraftApprove::Serialization::Json::Serializer }
 
   describe '.changes_for_model' do
     context 'when using a model with no associations' do

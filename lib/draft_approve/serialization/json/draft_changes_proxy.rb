@@ -3,45 +3,61 @@ require 'draft_approve/serialization/json/helper'
 module DraftApprove
   module Serialization
     module Json
-      class DraftableProxy
+      class DraftChangesProxy
         HELPER = DraftApprove::Serialization::Json::Helper
+        private_constant :HELPER
 
-        def initialize(object, draft_transaction)
-          if object.blank? || draft_transaction.blank?
-            raise(ArgumentError, "#{self.class.name}.new - object & draft_transaction are both required arguments")
+        attr_reader :draft, :draftable, :draftable_class, :draft_transaction
+
+        # Creates a new DraftChangesProxy
+        #
+        # @param object [Object] the +Draft+ object, or the instance of an
+        #   +acts_as_draftable+ class, which is being proxied to get changes
+        # @param transaction [DraftTransaction] the +DraftTransaction+ within
+        #   which to look for changes. If +object+ is a +Draft+, this parameter
+        #   is optional and if not provided will use the +DraftTransaction+
+        #   associated with the given +Draft+. If +object+ is not a +Draft+,
+        #   this parameter is required.
+        def initialize(object, transaction = nil)
+          if object.blank?
+            raise(ArgumentError, "object is required")
           end
 
           if object.new_record?
-            raise(ArgumentError, "#{self.class.name}.new - object must already be persisted")
+            raise(ArgumentError, "object must already be persisted")
           end
 
           if object.is_a? Draft
-            unless object.draft_transaction == draft_transaction
-              raise(ArgumentError, "#{self.class.name}.new - draft_transaction for #{object} is inconsistent with given draft_transaction #{draft_transaction}")
+            if transaction.present? && object.draft_transaction != transaction
+              raise(ArgumentError, "draft_transaction for #{object} is inconsistent with given draft_transaction #{transaction}")
             end
 
             # Construct DraftableProxy from a draft
             # Note that @draftable may be nil (if this is a CREATE draft)
-            @draft = draft
-            @draftable = (draft.draftable.present? && draft.draftable.persisted?) ? draft.draftable : nil
-            @draftable_class = Object.const_get(draft.draftable_type)
-            @draft_transaction = draft_transaction
+            @draft = object
+            @draftable = (object.draftable.present? && object.draftable.persisted?) ? object.draftable : nil
+            @draftable_class = Object.const_get(object.draftable_type)
+            @draft_transaction = object.draft_transaction
           else
+            if transaction.blank?
+              raise(ArgumentError, "draft_transaction is required when object is a draftable")
+            end
+
             # Construct DraftableProxy from a draftable
             # Note that @draft may be nil (if the draftable has no changes within the scope of this transaction)
-            @draft = draft_transaction.drafts.find_by(draftable: object)
+            @draft = transaction.drafts.find_by(draftable: object)
             @draftable = object
             @draftable_class = object.class
-            @draft_transaction = draft_transaction
+            @draft_transaction = transaction
           end
         end
 
-        # Whether or not the proxied `Draft` or draftable object has any
+        # Whether or not the proxied +Draft+ or draftable object has any
         # changes.
         #
         # Note, this method only considers changes to attributes and changes
-        # to any `belongs_to` references. Any added / changed / deleted
-        # `has_many` or `has_one` associations are not considered.
+        # to any +belongs_to+ references. Any added / changed / deleted
+        # +has_many+ or +has_one+ associations are not considered.
         #
         # @return [Boolean] whether or not the proxied object has changes
         def changed?
@@ -52,12 +68,12 @@ module DraftApprove
           end
         end
 
-        # List of attributes on the proxied `Draft` or draftable object which
+        # List of attributes on the proxied +Draft+ or draftable object which
         # have changes.
         #
         # Note, this method only considers changes to attributes and changes
-        # to any `belongs_to` references. Any added / changed / deleted
-        # `has_many` or `has_one` associations are not considered.
+        # to any +belongs_to+ references. Any added / changed / deleted
+        # +has_many+ or +has_one+ associations are not considered.
         #
         # @return [Array<String>] array of the attributes which have changed on
         #   the proxied object
@@ -69,15 +85,15 @@ module DraftApprove
           end
         end
 
-        # Hash of changes on the proxied `Draft` or draftable object which
+        # Hash of changes on the proxied +Draft+ or draftable object which
         # have changes.
         #
         # Note, this method only considers changes to attributes and changes
-        # to any `belongs_to` references. Any added / changed / deleted
-        # `has_many` or `has_one` associations are not considered.
+        # to any +belongs_to+ references. Any added / changed / deleted
+        # +has_many+ or +has_one+ associations are not considered.
         #
         # @return [Hash<String, Array>] hash of the changes on the proxied
-        #   object, eg. `{ "name" => ["old_name", "new_name"] }`
+        #   object, eg. <tt>{ "name" => ["old_name", "new_name"] }</tt>
         def changes
           if @draft.blank?
             {} # No draft for this object, so no attributes have changed
@@ -89,11 +105,11 @@ module DraftApprove
         end
 
         # The old, currently persisted value, for the given attribute on the
-        # proxied `Draft` or draftable object.
+        # proxied +Draft+ or draftable object.
         #
         # @param attribute_name [String]
         #
-        # @return [Object, nil] the old value of the given attribute, or `nil`
+        # @return [Object, nil] the old value of the given attribute, or +nil+
         #   if there was no previous value
         def old_value(attribute_name)
           if @draftable.present?
@@ -111,7 +127,7 @@ module DraftApprove
           end
         end
 
-        # The new, drafted value for the given attribute on the proxied `Draft`
+        # The new, drafted value for the given attribute on the proxied +Draft+
         # or draftable object. If no changes have been drafted for the given
         # attribute, then returns the currently persisted value for the
         # attribute.
@@ -130,6 +146,21 @@ module DraftApprove
           else
             new_value_non_belongs_to_assocation(attribute_name)
           end
+        end
+
+        # Override equality for +DraftChangesProxy+ objects. This is largely to
+        # improve testability.
+        #
+        # @return [Boolean] +true+ if the given object is a +DraftChangesProxy+
+        #   which refers to the same +Draft+ (if any), the same draftable
+        #   (if any), the same draftable class, and the same +DraftTransaction+.
+        #   +false+ otherwise.
+        def ==(another_draft_changes_proxy)
+          return another_draft_changes_proxy.is_a?(self.class) &&
+            @draft == another_draft_changes_proxy.draft &&
+            @draftable == another_draft_changes_proxy.draftable &&
+            @draftable_class == another_draft_changes_proxy.draftable_class &&
+            @draft_transaction == another_draft_changes_proxy.draft_transaction
         end
 
         private
@@ -196,9 +227,9 @@ module DraftApprove
             # If we have a concrete object, get the objects already associated
             # with it, as well as any drafts pointed at it (drafts will point
             # at the live instance, not the draft changes)
-            associated_instances << @draftable.public_send(attribute_name)
+            associated_instances += @draftable.public_send(attribute_name)
 
-            associated_instances << @draft_transaction.drafts.where(
+            associated_instances += @draft_transaction.drafts.where(
               draftable_type: associated_class_name
             ).where(
               <<~SQL
@@ -210,7 +241,7 @@ module DraftApprove
           else
             # If we don't have a concrete object, this is a CREATE draft, so
             # just get any drafts pointed at this draft
-            associated_instances << @draft_transaction.drafts.where(
+            associated_instances += @draft_transaction.drafts.where(
               draftable_type: associated_class_name
             ).where(
               <<~SQL
@@ -225,12 +256,12 @@ module DraftApprove
         end
 
         def draft_proxy_for(object)
-          if object.repsonds_to?(:map)
+          if object.respond_to?(:map)
             # Object is a collection (likely an ActiveRecord collection), recursively call draft_proxy_for
             return object.map { |o| draft_proxy_for(o) }
-          elsif (object.is_a? Draft) || (object.responds_to?(:draftable?) && object.draftable?)
-            # Object is a draft or a draftable, wrap it in a DraftableProxy
-            return DraftApprove::Serialization::Json::DraftableProxy.new(object, @draft_transaction)
+          elsif (object.is_a? Draft) || (object.respond_to?(:draftable?) && object.draftable?)
+            # Object is a draft or a draftable, wrap it in a DraftChangesProxy
+            return self.class.new(object, @draft_transaction)
           else
             return object
           end

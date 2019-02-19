@@ -1,4 +1,4 @@
-require 'draft_approve/serialization/json/draftable_proxy'
+require 'draft_approve/serialization/json/draft_changes_proxy'
 require 'draft_approve/serialization/json/serializer'
 
 module DraftApprove
