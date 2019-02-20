@@ -19,6 +19,8 @@ class DraftTransaction < ActiveRecord::Base
   scope :approval_error, -> { where(status: APPROVAL_ERROR) }
 
   def approve_changes!(reviewed_by: nil, review_reason: nil)
+    # TODO: Don't approve changes if already approved/rejected
+    
     begin
       ActiveRecord::Base.transaction do
         drafts.order(:created_at, :id).each do |draft|
