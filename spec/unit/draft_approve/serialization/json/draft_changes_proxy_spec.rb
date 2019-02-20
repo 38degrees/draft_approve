@@ -368,7 +368,7 @@ RSpec.describe DraftApprove::Serialization::Json::DraftChangesProxy do
     end
   end
 
-  describe '#old_value' do
+  describe '#current_value' do
     context 'when there is no draftable' do
       let(:name)    { 'Person Name' }
       let(:gender)  { FactoryBot.create(:gender) }
@@ -385,15 +385,15 @@ RSpec.describe DraftApprove::Serialization::Json::DraftChangesProxy do
       let(:subject) { proxy.new(draft) }
 
       it 'returns nil for a simple attribute' do
-        expect(subject.old_value("name")).to be(nil)
+        expect(subject.current_value("name")).to be(nil)
       end
 
       it 'returns nil for a belongs_to association' do
-        expect(subject.old_value("gender")).to be(nil)
+        expect(subject.current_value("gender")).to be(nil)
       end
 
       it 'returns an empty array for a has_many association' do
-        expect(subject.old_value("contact_addresses")).to eq([])
+        expect(subject.current_value("contact_addresses")).to eq([])
       end
     end
 
@@ -413,11 +413,11 @@ RSpec.describe DraftApprove::Serialization::Json::DraftChangesProxy do
       let(:subject) { proxy.new(draft) }
 
       it 'returns the current value for a simple attribute' do
-        expect(subject.old_value("name")).to eq(name)
+        expect(subject.current_value("name")).to eq(name)
       end
 
       it 'returns a DraftChangesProxy of the current value for a belongs_to association' do
-        expect(subject.old_value("gender")).to eq(proxy.new(gender, transaction))
+        expect(subject.current_value("gender")).to eq(proxy.new(gender, transaction))
       end
 
       it "returns an array of DraftChangesProxy's of the current values for has_many associations" do
@@ -425,17 +425,18 @@ RSpec.describe DraftApprove::Serialization::Json::DraftChangesProxy do
           proxy.new(contact1, transaction),
           proxy.new(contact2, transaction)
         ]
-        expect(subject.old_value("contact_addresses")).to match_array(expected_values)
+        expect(subject.current_value("contact_addresses")).to match_array(expected_values)
       end
     end
   end
 
   describe '#new_value' do
+    let!(:name)    { 'Person Name' }
+    let!(:gender)  { FactoryBot.create(:gender) }
+    let!(:person)  { FactoryBot.create(:person, name: name, gender: gender) }
+    let!(:contact) { FactoryBot.create(:contact_address, contactable: person) }
+
     context 'when there is no Draft' do
-      let(:name)    { 'Person Name' }
-      let(:gender)  { FactoryBot.create(:gender) }
-      let(:person)  { FactoryBot.create(:person, name: name, gender: gender) }
-      let(:contact) { FactoryBot.create(:contact_address, contactable: person) }
       let(:subject) { proxy.new(person, transaction) }
 
       it 'returns the current value for a simple attribute' do
@@ -452,50 +453,10 @@ RSpec.describe DraftApprove::Serialization::Json::DraftChangesProxy do
       end
     end
 
-    context 'when the Draft has no changes' do
-      let(:name)     { 'Person Name' }
-      let(:gender)   { FactoryBot.create(:gender) }
-      let(:person)   { FactoryBot.create(:person, name: name, gender: gender) }
-      let(:contact1) { FactoryBot.create(:contact_address, contactable: person) }
-      let(:contact2) { FactoryBot.create(:contact_address, contactable: person) }
-      let(:draft) do
-        FactoryBot.create(
-          :draft,
-          draft_transaction: transaction,
-          draftable: person,
-          draft_changes: {}
-        )
-      end
-      let(:subject) { proxy.new(draft) }
-
-      it 'returns the current value for a simple attribute' do
-        expect(subject.new_value("name")).to eq(name)
-      end
-
-      it 'returns a DraftChangesProxy of the current value for a belongs_to association' do
-        expect(subject.new_value("gender")).to eq(proxy.new(gender, transaction))
-      end
-
-      it "returns an array of DraftChangesProxy's of the current values for has_many associations" do
-        expected_values = [
-          proxy.new(contact1, transaction),
-          proxy.new(contact2, transaction)
-        ]
-        expect(subject.new_value("contact_addresses")).to match_array(expected_values)
-      end
-    end
-
-    context 'when the Draft has changes' do
-      let(:name)    { 'Person Name' }
-      let(:gender)  { FactoryBot.create(:gender) }
-      let(:person)  { FactoryBot.create(:person, name: name, gender: gender) }
-      let(:contact) { FactoryBot.create(:contact_address, contactable: person) }
-
+    context 'when there is a Draft' do
       let(:subject) { proxy.new(draft) }
 
       context 'simple attributes' do
-        let(:new_name) { 'Person New Name' }
-        let(:changes)  { { "name" => [name, new_name] } }
         let(:draft) do
           FactoryBot.create(
             :draft,
@@ -505,8 +466,30 @@ RSpec.describe DraftApprove::Serialization::Json::DraftChangesProxy do
           )
         end
 
-        it 'returns the new value for a simple attribute' do
-          expect(subject.new_value("name")).to eq(new_name)
+        context 'when there are no changes to the attribute' do
+          let(:changes)  { {} }
+
+          it 'returns the current value for a simple attribute' do
+            expect(subject.new_value("name")).to eq(name)
+          end
+        end
+
+        context 'when the new value is non-nil' do
+          let(:new_name) { 'Person New Name' }
+          let(:changes)  { { "name" => [name, new_name] } }
+
+          it 'returns the new value for a simple attribute' do
+            expect(subject.new_value("name")).to eq(new_name)
+          end
+        end
+
+        context 'when the new value is nil' do
+          let(:new_name) { nil }
+          let(:changes)  { { "name" => [name, new_name] } }
+
+          it 'returns the nil new value for a simple attribute' do
+            expect(subject.new_value("name")).to be(nil)
+          end
         end
       end
 
@@ -515,31 +498,38 @@ RSpec.describe DraftApprove::Serialization::Json::DraftChangesProxy do
           FactoryBot.create(
             :draft,
             draft_transaction: transaction,
-            draftable: person,
+            draftable: contact,
             draft_changes: changes
           )
         end
 
+        context 'when there are no changes to the association' do
+          let(:changes) { {} }
+          it 'returns a DraftChangesProxy of the current value for a belongs_to association' do
+            expect(subject.new_value("contactable")).to eq(proxy.new(person, transaction))
+          end
+        end
+
         context 'when the new value is an already persisted object' do
-          let(:new_gender) { FactoryBot.create(:gender) }
+          let(:membership) { FactoryBot.create(:person) }
           let(:changes) do
             {
-              "gender" => [
-                { const_type => gender.class.name, const_id => gender.id },
-                { const_type => new_gender.class.name, const_id => new_gender.id }
+              "contactable" => [
+                { const_type => person.class.name, const_id => person.id },
+                { const_type => membership.class.name, const_id => membership.id }
               ]
             }
           end
 
           it 'returns a DraftChangesProxy of the new value for a belongs_to association' do
-            expect(subject.new_value("gender")).to eq(proxy.new(new_gender, transaction))
+            expect(subject.new_value("contactable")).to eq(proxy.new(membership, transaction))
           end
         end
 
         context 'when the new value is a persisted draft in the same transaction' do
-          let(:new_gender) do
+          let(:membership) do
             FactoryBot.build(
-              :gender,
+              :membership,
               :with_persisted_draft,
               draft_transaction: transaction
             )
@@ -547,44 +537,522 @@ RSpec.describe DraftApprove::Serialization::Json::DraftChangesProxy do
 
           let(:changes) do
             {
-              "gender" => [
-                { const_type => gender.class.name, const_id => gender.id },
-                { const_type => Draft.name, const_id => new_gender.draft_pending_approval.id }
+              "contactable" => [
+                { const_type => person.class.name, const_id => person.id },
+                { const_type => Draft.name, const_id => membership.draft_pending_approval.id }
               ]
             }
           end
 
-          it 'returns a DraftChangesProxy of the new value for a belongs_to association' do
-            expect(subject.new_value("gender")).to eq(proxy.new(new_gender.draft_pending_approval, transaction))
+          it 'returns a DraftChangesProxy of the new draft for a belongs_to association' do
+            expect(subject.new_value("contactable")).to eq(proxy.new(membership.draft_pending_approval, transaction))
           end
         end
 
         context 'when the new value is a persisted draft in another transaction' do
-          let(:new_gender) { FactoryBot.build(:gender, :with_persisted_draft) }
+          let(:membership) { FactoryBot.build(:membership, :with_persisted_draft) }
 
           let(:changes) do
             {
-              "gender" => [
-                { const_type => gender.class.name, const_id => gender.id },
-                { const_type => Draft.name, const_id => new_gender.draft_pending_approval.id }
+              "contactable" => [
+                { const_type => person.class.name, const_id => person.id },
+                { const_type => Draft.name, const_id => membership.draft_pending_approval.id }
               ]
             }
           end
 
           it 'raises an ArgumentError' do
             expect do
-              subject.new_value("gender")
+              subject.new_value("contactable")
             end.to raise_error(ArgumentError)
+          end
+        end
+
+        context 'when the new value is nil' do
+          let(:changes) do
+            {
+              "contactable" => [
+                { const_type => person.class.name, const_id => person.id },
+                nil
+              ]
+            }
+          end
+
+          it 'returns the nil new value for a belongs_to association' do
+            expect(subject.new_value("contactable")).to be(nil)
+          end
+        end
+      end
+    end
+  end
+
+  context 'has_many associations' do
+    let!(:name)    { 'Person Name' }
+    let!(:gender)  { FactoryBot.create(:gender) }
+    let!(:person)  { FactoryBot.create(:person, name: name, gender: gender) }
+    let!(:contact) { FactoryBot.create(:contact_address, contactable: person) }
+
+    context 'non-polymorphic has_many associations' do
+      context 'when there is a draftable' do
+        let(:subject)     { proxy.new(gender, transaction) }
+        let(:association) { "people" }
+
+        context 'when no additional drafts referencing the draftable have been created' do
+          it "#new_value returns the DraftChangesProxy's for the current values" do
+            expected_values = [proxy.new(person, transaction)]
+            expect(subject.new_value(association)).to match_array(expected_values)
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
+
+        context 'when an additional draft referencing the draftable has been created' do
+          let(:another_person) do
+            FactoryBot.build(
+              :person,
+              :with_persisted_draft,
+              draft_transaction: transaction,
+              draft_action_type: Draft::CREATE,
+              draft_changes: {
+                "gender" => [
+                  nil,
+                  { const_type => Gender.name, const_id => gender.id }
+                ]
+              }
+            )
+          end
+
+          it "#new_value returns an the DraftChangesProxy's for the current values and newly drafted values" do
+            expected_values = [
+              proxy.new(person, transaction),
+              proxy.new(another_person.draft_pending_approval, transaction)
+            ]
+            expect(subject.new_value(association)).to match_array(expected_values)
+          end
+
+          it "#associations_added returns the DraftChangesProxy's for the newly drafted values" do
+            expected_values = [
+              proxy.new(another_person.draft_pending_approval, transaction)
+            ]
+            expect(subject.associations_added(association)).to match_array(expected_values)
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
+
+        context 'when a draft referencing the draftable has been created in another transaction' do
+          let(:another_person) do
+            FactoryBot.build(
+              :person,
+              :with_persisted_draft,
+              draft_action_type: Draft::CREATE,
+              draft_changes: {
+                "gender" => [
+                  nil,
+                  { const_type => Gender.name, const_id => gender.id }
+                ]
+              }
+            )
+          end
+
+          it "#new_value returns the DraftChangesProxy's for the current values" do
+            expected_values = [proxy.new(person, transaction)]
+            expect(subject.new_value(association)).to match_array(expected_values)
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
+
+        context 'when a draft removing the draftable reference from the existing association has been created' do
+          let!(:person_draft) do
+            FactoryBot.create(
+              :draft,
+              draft_transaction: transaction,
+              draftable: person,
+              draft_action_type: Draft::UPDATE,
+              draft_changes: {
+                "gender" => [
+                  { const_type => Gender.name, const_id => gender.id },
+                  nil
+                ]
+              }
+            )
+          end
+
+          it "#new_value returns an empty array" do
+            expect(subject.new_value(association)).to eql([])
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it "#associations_removed returns the DraftChangesProxy's for the draft" do
+            expected_values = [proxy.new(person, transaction)]
+            expect(subject.associations_removed(association)).to match_array(expected_values)
+          end
+        end
+
+        context 'when a draft deleting the associated object has been created' do
+          let!(:person_draft) do
+            FactoryBot.create(
+              :draft,
+              draft_transaction: transaction,
+              draftable: person,
+              draft_action_type: Draft::DELETE,
+              draft_changes: {}
+            )
+          end
+
+          it "#new_value returns an empty array" do
+            expect(subject.new_value(association)).to eql([])
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it "#associations_removed returns the DraftChangesProxy's for the draft" do
+            expected_values = [proxy.new(person, transaction)]
+            expect(subject.associations_removed(association)).to match_array(expected_values)
           end
         end
       end
 
-      context 'has_many associations' do
+      context 'when there is a Draft with no persisted draftable' do
+        let(:new_gender) do
+          FactoryBot.build(
+            :gender,
+            :with_persisted_draft,
+            draft_transaction: transaction,
+            draft_action_type: Draft::CREATE
+          )
+        end
+        let(:subject)     { proxy.new(new_gender.draft_pending_approval) }
+        let(:association) { "people" }
 
+        context 'when no additional drafts referencing the subject draft have been created' do
+          it '#new_value returns an empty array' do
+            expect(subject.new_value(association)).to eql([])
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
+
+        context 'when an additional draft referencing the subject draft has been created' do
+          let(:another_person) do
+            FactoryBot.build(
+              :person,
+              :with_persisted_draft,
+              draft_transaction: transaction,
+              draft_action_type: Draft::CREATE,
+              draft_changes: {
+                "gender" => [
+                  nil,
+                  { const_type => Draft.name, const_id => new_gender.draft_pending_approval.id }
+                ]
+              }
+            )
+          end
+
+          it "#new_value returns an the DraftChangesProxy's for the newly drafted values" do
+            expected_values = [
+              proxy.new(another_person.draft_pending_approval, transaction)
+            ]
+            expect(subject.new_value(association)).to match_array(expected_values)
+          end
+
+          it "#associations_added returns the DraftChangesProxy's for the newly drafted values" do
+            expected_values = [
+              proxy.new(another_person.draft_pending_approval, transaction)
+            ]
+            expect(subject.associations_added(association)).to match_array(expected_values)
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
+
+        context 'when a draft referencing the draftable has been created in another transaction' do
+          let(:another_person) do
+            FactoryBot.build(
+              :person,
+              :with_persisted_draft,
+              draft_action_type: Draft::CREATE,
+              draft_changes: {
+                "gender" => [
+                  nil,
+                  { const_type => Draft.name, const_id => new_gender.draft_pending_approval.id }
+                ]
+              }
+            )
+          end
+
+          it "#new_value returns an empty array" do
+            expect(subject.new_value(association)).to match_array([])
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
+      end
+    end
+
+    context 'polymorphic has_many associations' do
+      context 'when there is a draftable' do
+        let(:subject)     { proxy.new(person, transaction) }
+        let(:association) { "contact_addresses" }
+
+        context 'when no additional drafts referencing the draftable have been created' do
+          it "#new_value returns the DraftChangesProxy's for the current values" do
+            expected_values = [proxy.new(contact, transaction)]
+            expect(subject.new_value(association)).to match_array(expected_values)
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
+
+        context 'when an additional draft referencing the draftable has been created' do
+          let(:another_contact) do
+            FactoryBot.build(
+              :contact_address,
+              :with_persisted_draft,
+              draft_transaction: transaction,
+              draft_action_type: Draft::CREATE,
+              draft_changes: {
+                "contactable" => [
+                  nil,
+                  { const_type => Person.name, const_id => person.id }
+                ]
+              }
+            )
+          end
+
+          it "#new_value returns an the DraftChangesProxy's for the current values and newly drafted values" do
+            expected_values = [
+              proxy.new(contact, transaction),
+              proxy.new(another_contact.draft_pending_approval, transaction)
+            ]
+            expect(subject.new_value(association)).to match_array(expected_values)
+          end
+
+          it "#associations_added returns the DraftChangesProxy's for the newly drafted values" do
+            expected_values = [
+              proxy.new(another_contact.draft_pending_approval, transaction)
+            ]
+            expect(subject.associations_added(association)).to match_array(expected_values)
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
+
+        context 'when a draft referencing the draftable has been created in another transaction' do
+          let(:another_contact) do
+            FactoryBot.build(
+              :contact_address,
+              :with_persisted_draft,
+              draft_action_type: Draft::CREATE,
+              draft_changes: {
+                "contactable" => [
+                  nil,
+                  { const_type => Person.name, const_id => person.id }
+                ]
+              }
+            )
+          end
+
+          it "#new_value returns the DraftChangesProxy's for the current values" do
+            expected_values = [proxy.new(contact, transaction)]
+            expect(subject.new_value(association)).to match_array(expected_values)
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
+
+        context 'when a draft removing the draftable reference from the existing association has been created' do
+          let!(:contact_draft) do
+            FactoryBot.create(
+              :draft,
+              draft_transaction: transaction,
+              draftable: contact,
+              draft_action_type: Draft::UPDATE,
+              draft_changes: {
+                "contactable" => [
+                  { const_type => Person.name, const_id => person.id },
+                  nil
+                ]
+              }
+            )
+          end
+
+          it "#new_value returns an empty array" do
+            expect(subject.new_value(association)).to eql([])
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it "#associations_removed returns the DraftChangesProxy's for the draft" do
+            expected_values = [proxy.new(contact, transaction)]
+            expect(subject.associations_removed(association)).to match_array(expected_values)
+          end
+        end
+
+        context 'when a draft deleting the associated object has been created' do
+          let!(:contact_draft) do
+            FactoryBot.create(
+              :draft,
+              draft_transaction: transaction,
+              draftable: contact,
+              draft_action_type: Draft::DELETE,
+              draft_changes: {}
+            )
+          end
+
+          it "#new_value returns an empty array" do
+            expect(subject.new_value(association)).to eql([])
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it "#associations_removed returns the DraftChangesProxy's for the draft" do
+            expected_values = [proxy.new(contact, transaction)]
+            expect(subject.associations_removed(association)).to match_array(expected_values)
+          end
+        end
       end
 
-      context 'polymorphic has_many associations' do
+      context 'when there is a Draft with no persisted draftable' do
+        let(:new_person) do
+          FactoryBot.build(
+            :person,
+            :with_persisted_draft,
+            draft_transaction: transaction,
+            draft_action_type: Draft::CREATE
+          )
+        end
+        let(:subject)     { proxy.new(new_person.draft_pending_approval) }
+        let(:association) { "contact_addresses" }
 
+        context 'when no additional drafts referencing the subject draft have been created' do
+          it '#new_value returns an empty array' do
+            expect(subject.new_value(association)).to eql([])
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
+
+        context 'when an additional draft referencing the subject draft has been created' do
+          let(:another_contact) do
+            FactoryBot.build(
+              :contact_address,
+              :with_persisted_draft,
+              draft_transaction: transaction,
+              draft_action_type: Draft::CREATE,
+              draft_changes: {
+                "contactable" => [
+                  nil,
+                  { const_type => Draft.name, const_id => new_person.draft_pending_approval.id }
+                ]
+              }
+            )
+          end
+
+          it "#new_value returns an the DraftChangesProxy's for the newly drafted values" do
+            expected_values = [
+              proxy.new(another_contact.draft_pending_approval, transaction)
+            ]
+            expect(subject.new_value(association)).to match_array(expected_values)
+          end
+
+          it "#associations_added returns the DraftChangesProxy's for the newly drafted values" do
+            expected_values = [
+              proxy.new(another_contact.draft_pending_approval, transaction)
+            ]
+            expect(subject.associations_added(association)).to match_array(expected_values)
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
+
+        context 'when a draft referencing the draftable has been created in another transaction' do
+          let(:another_contact) do
+            FactoryBot.build(
+              :contact_address,
+              :with_persisted_draft,
+              draft_action_type: Draft::CREATE,
+              draft_changes: {
+                "contactable" => [
+                  nil,
+                  { const_type => Draft.name, const_id => new_person.draft_pending_approval.id }
+                ]
+              }
+            )
+          end
+
+          it "#new_value returns an empty array" do
+            expect(subject.new_value(association)).to match_array([])
+          end
+
+          it '#associations_added returns an empty array' do
+            expect(subject.associations_added(association)).to eql([])
+          end
+
+          it '#associations_removed returns an empty array' do
+            expect(subject.associations_removed(association)).to eql([])
+          end
+        end
       end
     end
   end

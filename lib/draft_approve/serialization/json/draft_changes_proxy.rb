@@ -4,6 +4,8 @@ module DraftApprove
   module Serialization
     module Json
       class DraftChangesProxy
+        include Comparable
+
         HELPER = DraftApprove::Serialization::Json::Helper
         private_constant :HELPER
 
@@ -111,19 +113,21 @@ module DraftApprove
             {} # No draft for this object, so no attributes have changed
           else
             @draft.draft_changes.each_with_object({}) do |(k,v), new_hash|
-              new_hash[k] = [old_value(k), new_value(k)]
+              new_hash[k] = [current_value(k), new_value(k)]
             end
           end
         end
 
-        # The old, currently persisted value, for the given attribute on the
-        # proxied +Draft+ or draftable object.
+        # The currently persisted value for the given attribute on the proxied
+        # +Draft+ or draftable object.
         #
         # @param attribute_name [String]
         #
         # @return [Object, nil] the old value of the given attribute, or +nil+
         #   if there was no previous value
-        def old_value(attribute_name)
+        def current_value(attribute_name)
+          attribute_name = attribute_name.to_s
+
           if @draftable.present?
             # 'Old' value is what is currently on the draftable object
             return draft_proxy_for(@draftable.public_send(attribute_name))
@@ -150,6 +154,8 @@ module DraftApprove
         #   currently persisted value if there are no draft changes for the
         #   attribute
         def new_value(attribute_name)
+          attribute_name = attribute_name.to_s
+
           association = @draftable_class.reflect_on_association(attribute_name)
           if association.blank?
             new_value_simple_attribute(attribute_name)
@@ -160,19 +166,59 @@ module DraftApprove
           end
         end
 
-        # Override equality for +DraftChangesProxy+ objects. This is largely to
-        # improve testability.
+        # All associated objects which will be added to the given association of
+        # the proxied +Draft+ or draftable object.
         #
-        # @return [Boolean] +true+ if the given object is a +DraftChangesProxy+
+        # @param association_name [String]
+        #
+        # @return [Array<DraftChangesProxy>] DraftChangesProxy objects for each
+        #   object which will be added to the given association
+        def associations_added(association_name)
+          association_values(association_name, :created)
+        end
+
+        # All associated objects which will be removed from the given
+        # association of the proxied +Draft+ or draftable object.
+        #
+        # @param association_name [String]
+        #
+        # @return [Array<DraftChangesProxy>] DraftChangesProxy objects for each
+        #   object which will be removed from the given association
+        def associations_removed(association_name)
+          association_values(association_name, :deleted)
+        end
+
+        # Override comparable for +DraftChangesProxy+ objects. This is so
+        # operators such as + and - work accurately when an array of
+        # +DraftChangesProxy+ objects are being returned. It also makes
+        # testing easier.
+        #
+        # @return [Integer] 0 if the given object is a +DraftChangesProxy+
         #   which refers to the same +Draft+ (if any), the same draftable
         #   (if any), the same draftable class, and the same +DraftTransaction+.
-        #   +false+ otherwise.
-        def ==(another_draft_changes_proxy)
-          return another_draft_changes_proxy.is_a?(self.class) &&
-            @draft == another_draft_changes_proxy.draft &&
-            @draftable == another_draft_changes_proxy.draftable &&
-            @draftable_class == another_draft_changes_proxy.draftable_class &&
-            @draft_transaction == another_draft_changes_proxy.draft_transaction
+        #   Non-zero otherwise.
+        def <=>(other)
+          return -1 unless other.is_a?(self.class)
+
+          [:draft, :draftable, :draftable_class, :draft_transaction].each do |method|
+            comp = self.public_send(method) <=> other.public_send(method)
+            return -1 if comp.nil?
+            return comp unless comp.zero?
+          end
+
+          # Checked all attributes, and all are equal
+          return 0
+        end
+
+        alias :eql? :==
+
+        # Override hash for +DraftChangesProxy+ objects. This is so operators
+        # such as + and - work accurately when an array of +DraftChangesProxy+
+        # objects are being returned. It also makes testing easier.
+        #
+        # @return [Integer] a hash of all the +DraftChangeProxy+s attributes
+        def hash
+          [@draft, @draftable, @draftable_class, @draft_transaction].hash
         end
 
         private
@@ -199,7 +245,11 @@ module DraftApprove
         #   end
         # end
 
+        # Helper to get the new value of a simple attribute as a result of this
+        # draft transaction
         def new_value_simple_attribute(attribute_name)
+          attribute_name = attribute_name.to_s
+
           # This attribute is a simple value (not an association)
           if @draft.blank? || !@draft.draft_changes.has_key?(attribute_name)
             # Either no draft, or no changes for this attribute
@@ -211,7 +261,11 @@ module DraftApprove
           end
         end
 
+        # Helper to get the new value of a belongs_to association as a result
+        # of this draft transaction
         def new_value_belongs_to_assocation(attribute_name)
+          attribute_name = attribute_name.to_s
+
           # This attribute is an association where the 'belongs_to' is on this
           # class...
           if @draft.blank? || !@draft.draft_changes.has_key?(attribute_name)
@@ -220,53 +274,97 @@ module DraftApprove
           else
             # Draft changes have been made on this attribute...
             new_value = @draft.draft_changes[attribute_name][1]
-            new_value_class = Object.const_get(new_value[HELPER::TYPE])
-            new_value_object = new_value_class.find(new_value[HELPER::ID])
-            return draft_proxy_for(new_value_object)
+
+            if new_value.blank?
+              return nil  # The association link has been removed on the draft
+            else
+              new_value_class = Object.const_get(new_value[HELPER::TYPE])
+              new_value_object = new_value_class.find(new_value[HELPER::ID])
+              return draft_proxy_for(new_value_object)
+            end
           end
         end
 
-        def new_value_non_belongs_to_assocation(attribute_name)
-          # This attribute is an association where the 'belongs_to' is on the
-          # other class...
-          association = @draftable_class.reflect_on_association(attribute_name)
-          associated_class_name = association.class_name
-          associated_attribute_name = association.inverse_of.name
+        # Helper to get the new value of has_one / has_many associations (ie.
+        # get all the objects the association would return after this draft
+        # dransaction has been applied)
+        def new_value_non_belongs_to_assocation(association_name)
+          association_name = association_name.to_s
 
           associated_instances = []
 
-          if @draftable.present?
-            # If we have a concrete object, get the objects already associated
-            # with it, as well as any drafts pointed at it (drafts will point
-            # at the live instance, not the draft changes)
-            associated_instances += @draftable.public_send(attribute_name)
+          # Starting point is all objects already associated
+          associated_instances += current_value(association_name)
 
-            associated_instances += @draft_transaction.drafts.where(
-              draftable_type: associated_class_name
-            ).where(
-              <<~SQL
-                draft_changes #>> '{#{associated_attribute_name},1,#{HELPER::TYPE}}' = '#{@draftable.class.name}'
-                AND
-                draft_changes #>> '{#{associated_attribute_name},1,#{HELPER::ID}}' = '#{@draftable.id}'
-              SQL
-            )
-          else
-            # If we don't have a concrete object, this is a CREATE draft, so
-            # just get any drafts pointed at this draft
-            associated_instances += @draft_transaction.drafts.where(
-              draftable_type: associated_class_name
-            ).where(
-              <<~SQL
-                draft_changes #>> '{#{associated_attribute_name},1,#{HELPER::TYPE}}' = '#{@draft.class.name}'
-                AND
-                draft_changes #>> '{#{associated_attribute_name},1,#{HELPER::ID}}' = '#{@draft.id}'
-              SQL
-            )
-          end
+          # Add any new objects which will be created by this transaction and
+          # refer to this object
+          associated_instances += associations_added(association_name)
 
-          return draft_proxy_for(associated_instances)
+          # Finally remove any associations which will be deleted or not
+          # refer to this object anymore as a reuslt of this transaction
+          associated_instances -= associations_removed(association_name)
+
+          return associated_instances
         end
 
+        # Helper to get the associations which have been created or deleted as
+        # a result of this draft transaction
+        def association_values(association_name, mode)
+          association_name = association_name.to_s
+
+          association = @draftable_class.reflect_on_association(association_name)
+          if association.blank? || association.belongs_to?
+            raise(ArgumentError, "#{association_name} must be a has_many or has_one association")
+          end
+
+          associated_class_name = association.class_name
+          associated_attribute_name = association.inverse_of.name
+
+          # If we are proxying a concrete object, all associations will point
+          # directly at it, otherwise we are proxying a CREATE draft and
+          # associations will point at the draft
+          required_object = (@draftable.present? ? @draftable : @draft)
+
+          case mode
+          when :created
+            # Looking for newly created associations, so we want to find
+            # objects where the new value (index=1) of the associated
+            # attribute points at this object.
+            # eg. if looking for new memberships for Person 1, we want to find
+            # Membership objects where the json changes look like this:
+            # { "person" => [nil, { "TYPE" => "Person", "ID" => 1 }] }
+            json_query_str_type = "{#{associated_attribute_name},1,#{HELPER::TYPE}}"
+            json_query_str_id = "{#{associated_attribute_name},1,#{HELPER::ID}}"
+
+            created_associations = @draft_transaction.drafts.where(
+              draftable_type: associated_class_name
+            ).where(
+              <<~SQL
+                draft_changes #>> '#{json_query_str_type}' = '#{required_object.class.name}'
+                AND
+                draft_changes #>> '#{json_query_str_id}' = '#{required_object.id}'
+              SQL
+            )
+
+            return draft_proxy_for(created_associations)
+          when :deleted
+            # Looking for current associations which have either been drafted
+            # for complete deletion, or which have had their reference changed
+            # to no longer point at this object
+            required_proxy = draft_proxy_for(required_object)
+
+            deleted_associations = current_value(association_name).select do |proxy|
+              proxy.delete? ||
+                proxy.new_value(associated_attribute_name) != required_proxy
+            end
+
+            return draft_proxy_for(deleted_associations)
+          else
+            raise(ArgumentError, "Unrecognised mode #{mode}")
+          end
+        end
+
+        # Helper to get a draft proxy for any object before returning it
         def draft_proxy_for(object)
           if object.respond_to?(:map)
             # Object is a collection (likely an ActiveRecord collection), recursively call draft_proxy_for
