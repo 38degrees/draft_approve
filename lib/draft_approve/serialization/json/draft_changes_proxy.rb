@@ -24,7 +24,7 @@ module DraftApprove
           end
 
           if object.new_record?
-            raise(ArgumentError, "object must already be persisted")
+            raise(ArgumentError, "object #{object} must already be persisted")
           end
 
           if object.is_a? Draft
@@ -50,6 +50,18 @@ module DraftApprove
             @draftable_class = object.class
             @draft_transaction = transaction
           end
+        end
+
+        # @return [Boolean] +true+ if this +Draft+ is to create a new record,
+        #   +false+ otherwise
+        def create?
+          @draft.present? && @draft.create?
+        end
+
+        # @return [Boolean] +true+ if this +Draft+ is to delete an existing
+        #   record, +false+ otherwise
+        def delete?
+          @draft.present? && @draft.delete?
         end
 
         # Whether or not the proxied +Draft+ or draftable object has any

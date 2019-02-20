@@ -18,7 +18,26 @@ class Draft < ActiveRecord::Base
   scope :rejected, -> { joins(:draft_transaction).merge(DraftTransaction.rejected) }
   scope :approval_error, -> { joins(:draft_transaction).merge(DraftTransaction.approval_error) }
 
-  # Approve changes, writing the draft changes to the database
+  # @return [Boolean] +true+ if this +Draft+ is to create a new record, +false+
+  #   otherwise
+  def create?
+    draft_action_type == CREATE
+  end
+
+  # @return [Boolean] +true+ if this +Draft+ is to update an existing record,
+  #   +false+ otherwise
+  def update?
+    draft_action_type == UPDATE
+  end
+
+  # @return [Boolean] +true+ if this +Draft+ is to delete an existing record,
+  #   +false+ otherwise
+  def delete?
+    draft_action_type == DELETE
+  end
+
+  # Apply the changes in this draft, writing them to the database
+  # @api private
   def apply_changes!
     DraftApprove::Persistor.write_model_from_draft(self)
   end
