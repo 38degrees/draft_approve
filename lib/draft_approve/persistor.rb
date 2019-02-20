@@ -26,20 +26,20 @@ module DraftApprove
       DraftApprove::Transaction.ensure_in_draft_transaction do
         # Now we're in a Transaction, ensure we don't get multiple drafts for the same object
         if model.persisted? && Draft.pending_approval.where(draftable: model).count > 0
-          raise(DraftApprove::ExistingDraftError, "#{model} has existing draft")
+          raise(DraftApprove::Errors::ExistingDraftError, "#{model} has existing draft")
         end
 
         case action_type
         when Draft::CREATE
-          raise(DraftApprove::AlreadyPersistedModelError, "#{model} is already persisted") if model.persisted?
+          raise(DraftApprove::Errors::AlreadyPersistedModelError, "#{model} is already persisted") if model.persisted?
           draftable_type = model.class.name
           draftable_id = nil
         when Draft::UPDATE
-          raise(DraftApprove::UnpersistedModelError, "#{model} isn't persisted") unless model.persisted?
+          raise(DraftApprove::Errors::UnpersistedModelError, "#{model} isn't persisted") unless model.persisted?
           draftable_type = model.class.name
           draftable_id = model.id
         when Draft::DELETE
-          raise(DraftApprove::UnpersistedModelError, "#{model} isn't persisted") unless model.persisted?
+          raise(DraftApprove::Errors::UnpersistedModelError, "#{model} isn't persisted") unless model.persisted?
           draftable_type = model.class.name
           draftable_id = model.id
         else
@@ -72,7 +72,7 @@ module DraftApprove
 
       case draft.draft_action_type
       when Draft::CREATE
-        raise(DraftApprove::NoDraftableError, "No draftable_type for #{draft}") if draft.draftable_type.blank?
+        raise(DraftApprove::Errors::NoDraftableError, "No draftable_type for #{draft}") if draft.draftable_type.blank?
 
         create_method = (options.include?(CREATE_METHOD) ? options[CREATE_METHOD] : DEFAULT_CREATE_METHOD)
 
@@ -84,7 +84,7 @@ module DraftApprove
 
         return model
       when Draft::UPDATE
-        raise(DraftApprove::NoDraftableError, "No draftable for #{draft}") if draft.draftable.blank?
+        raise(DraftApprove::Errors::NoDraftableError, "No draftable for #{draft}") if draft.draftable.blank?
 
         update_method = (options.include?(UPDATE_METHOD) ? options[UPDATE_METHOD] : DEFAULT_UPDATE_METHOD)
 
@@ -92,7 +92,7 @@ module DraftApprove
         model.send(update_method, new_values_hash)
         return model
       when Draft::DELETE
-        raise(DraftApprove::NoDraftableError, "No draftable for #{draft}") if draft.draftable.blank?
+        raise(DraftApprove::Errors::NoDraftableError, "No draftable for #{draft}") if draft.draftable.blank?
 
         delete_method = (options.include?(DELETE_METHOD) ? options[DELETE_METHOD] : DEFAULT_DELETE_METHOD)
 

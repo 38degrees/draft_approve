@@ -81,7 +81,7 @@ RSpec.describe DraftApprove::Persistor do
         it 'raises AlreadyPersistedModelError' do
           expect do
             subject.write_draft_from_model(action_type, model)
-          end.to raise_error(DraftApprove::AlreadyPersistedModelError)
+          end.to raise_error(DraftApprove::Errors::AlreadyPersistedModelError)
         end
       end
     end
@@ -95,7 +95,7 @@ RSpec.describe DraftApprove::Persistor do
         it 'raises UnpersistedModelError' do
           expect do
             subject.write_draft_from_model(action_type, model)
-          end.to raise_error(DraftApprove::UnpersistedModelError)
+          end.to raise_error(DraftApprove::Errors::UnpersistedModelError)
         end
       end
 
@@ -152,7 +152,7 @@ RSpec.describe DraftApprove::Persistor do
         it 'raises UnpersistedModelError' do
           expect do
             subject.write_draft_from_model(action_type, model)
-          end.to raise_error(DraftApprove::UnpersistedModelError)
+          end.to raise_error(DraftApprove::Errors::UnpersistedModelError)
         end
       end
 
@@ -284,7 +284,7 @@ RSpec.describe DraftApprove::Persistor do
         it 'raises ExistingDraftError' do
           expect do
             subject.write_draft_from_model(action_type, model)
-          end.to raise_error(DraftApprove::ExistingDraftError)
+          end.to raise_error(DraftApprove::Errors::ExistingDraftError)
         end
       end
 

@@ -38,7 +38,7 @@ module DraftApprove
 
     # Get the current Draft Transaction, or raise an error
     def self.current_draft_transaction!
-      raise DraftApprove::NoDraftTransactionError unless current_draft_transaction.present?
+      raise DraftApprove::Errors::NoDraftTransactionError unless current_draft_transaction.present?
 
       current_draft_transaction
     end
@@ -46,7 +46,7 @@ module DraftApprove
     private
 
     def self.in_new_draft_transaction_helper(created_by: nil, extra_data: nil)
-      raise DraftApprove::NestedDraftTransactionError if current_draft_transaction.present?
+      raise DraftApprove::Errors::NestedDraftTransactionError if current_draft_transaction.present?
       draft_transaction, yield_return = nil
 
       ActiveRecord::Base.transaction do

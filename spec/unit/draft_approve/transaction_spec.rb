@@ -142,7 +142,7 @@ RSpec.describe DraftApprove::Transaction do
       it 'raises a NestedDraftTransactionError' do
         expect do
           subject.in_new_draft_transaction { true }
-        end.to raise_error(DraftApprove::NestedDraftTransactionError)
+        end.to raise_error(DraftApprove::Errors::NestedDraftTransactionError)
       end
 
       it 'does not create a DraftTransaction record' do
@@ -387,7 +387,7 @@ RSpec.describe DraftApprove::Transaction do
       it 'throws NoDraftTransactionError' do
         expect do
           subject.current_draft_transaction!
-        end.to raise_error(DraftApprove::NoDraftTransactionError)
+        end.to raise_error(DraftApprove::Errors::NoDraftTransactionError)
       end
     end
 
@@ -421,7 +421,7 @@ RSpec.describe DraftApprove::Transaction do
       it 'throws NoDraftTransactionError' do
         expect do
           subject.current_draft_transaction!
-        end.to raise_error(DraftApprove::NoDraftTransactionError)
+        end.to raise_error(DraftApprove::Errors::NoDraftTransactionError)
       end
     end
 

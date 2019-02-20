@@ -100,7 +100,7 @@ module DraftApprove
               draft = associated_obj.draft_pending_approval
 
               if draft.blank? || draft.new_record?
-                raise(DraftApprove::AssociationUnsavedError, "#{association.name} points to an unsaved object")
+                raise(DraftApprove::Errors::AssociationUnsavedError, "#{association.name} points to an unsaved object")
               end
 
               return { HELPER::TYPE => draft.class.name, HELPER::ID => draft.id }
@@ -143,7 +143,7 @@ module DraftApprove
               # It must be in the same draft transaction as the draft we're getting values for.
               associated_draft = @draft.draft_transaction.drafts.find(associated_model_id)
 
-              raise(PriorDraftNotAppliedError) if associated_draft.draftable.nil?
+              raise(DraftApprove::Errors::PriorDraftNotAppliedError) if associated_draft.draftable.nil?
 
               return associated_draft.draftable
             else

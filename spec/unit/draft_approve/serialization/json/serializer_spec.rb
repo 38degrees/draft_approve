@@ -3,7 +3,7 @@ require 'spec_helper'
 RSpec.describe DraftApprove::Serialization::Json::Serializer do
   let(:const_type) { DraftApprove::Serialization::Json::Helper::TYPE }
   let(:const_id)   { DraftApprove::Serialization::Json::Helper::ID }
-  
+
   let(:subject) { DraftApprove::Serialization::Json::Serializer }
 
   describe '.changes_for_model' do
@@ -151,7 +151,7 @@ RSpec.describe DraftApprove::Serialization::Json::Serializer do
               membership.person = new_person
               expect do
                 subject.changes_for_model(membership)
-              end.to raise_error(DraftApprove::AssociationUnsavedError)
+              end.to raise_error(DraftApprove::Errors::AssociationUnsavedError)
             end
           end
 
@@ -162,7 +162,7 @@ RSpec.describe DraftApprove::Serialization::Json::Serializer do
               membership.person = new_person
               expect do
                 subject.changes_for_model(membership)
-              end.to raise_error(DraftApprove::AssociationUnsavedError)
+              end.to raise_error(DraftApprove::Errors::AssociationUnsavedError)
             end
           end
 
@@ -316,7 +316,7 @@ RSpec.describe DraftApprove::Serialization::Json::Serializer do
               contact.contactable = new_person
               expect do
                 subject.changes_for_model(contact)
-              end.to raise_error(DraftApprove::AssociationUnsavedError)
+              end.to raise_error(DraftApprove::Errors::AssociationUnsavedError)
             end
           end
 
@@ -327,7 +327,7 @@ RSpec.describe DraftApprove::Serialization::Json::Serializer do
               contact.contactable = new_person
               expect do
                 subject.changes_for_model(contact)
-              end.to raise_error(DraftApprove::AssociationUnsavedError)
+              end.to raise_error(DraftApprove::Errors::AssociationUnsavedError)
             end
           end
 
@@ -620,7 +620,7 @@ RSpec.describe DraftApprove::Serialization::Json::Serializer do
               it 'raises a PriorDraftNotAppliedError' do
                 expect do
                   subject.new_values_for_draft(draft)
-                end.to raise_error(DraftApprove::PriorDraftNotAppliedError)
+                end.to raise_error(DraftApprove::Errors::PriorDraftNotAppliedError)
               end
             end
 
@@ -642,7 +642,7 @@ RSpec.describe DraftApprove::Serialization::Json::Serializer do
               it 'raises a PriorDraftNotAppliedError' do
                 expect do
                   subject.new_values_for_draft(draft)
-                end.to raise_error(DraftApprove::PriorDraftNotAppliedError)
+                end.to raise_error(DraftApprove::Errors::PriorDraftNotAppliedError)
               end
             end
           end
