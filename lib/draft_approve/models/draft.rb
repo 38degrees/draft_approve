@@ -1,3 +1,8 @@
+# @note It is strongly recommended that you do not directly create +Draft+
+#   objects, and instead use the supported public interface for doing so. See
+#   +DraftApprove::Draftable::ClassMethods+,
+#   +DraftApprove::Draftable::InstanceMethods+, and the README docs for this.
+#
 # ActiveRecord model for persisting data about draft changes.
 #
 # Each +Draft+ must be linked to a +DraftTransaction+, and must have a
@@ -22,6 +27,8 @@
 # (specifically by the +DraftApprove::Persistor+ class).
 #
 # @see DraftTransaction
+# @see DraftApprove::Draftable::ClassMethods
+# @see DraftApprove::Draftable::InstanceMethods
 class Draft < ActiveRecord::Base
   # IMPORTANT NOTE: These constants are written to the database, so cannot be
   # updated without requiring a migration of existing draft data

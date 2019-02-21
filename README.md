@@ -232,7 +232,7 @@ draft_transaction = Person.draft_transaction do
   # When approved, find or create Person A
   person = Person.new(name: 'Person A')
   person.draft_save!(create_method: :find_or_create_by!)
-  
+
   # When approved, update the record ignoring validations
   existing_person = Person.find(1)
   existing_person.birth_date = '1800-01-01'
@@ -278,7 +278,7 @@ draft_transaction = Person.draft_transaction do
   # Create a new person, and save it as a draft (note, this means p.id is nil!)
   p = Person.new(name: 'person name')
   p.save_draft!
-  
+
   c = ContactAddress.new(person: p)
   c.save_draft!  # raises ActiveRecord::RecordInvalid because contact_address.person_id is nil
 end
@@ -317,6 +317,8 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 To install this gem onto your local machine, run `bundle exec rake install`. Alternatively you may run `gem build draft_approve.gemspec` to generate the `.gem` file, then run `gem install ./draft_approve-0.1.0.gem` (replace `0.1.0` with the correct gem version).
 
 To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+
+To generate the YARD documentation locally, run `yard doc`, which will install the documentation into the `doc/` folder.
 
 ## Contributing
 

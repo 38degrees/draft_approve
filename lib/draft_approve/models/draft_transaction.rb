@@ -1,3 +1,8 @@
+# @note It is strongly recommended that you do not directly create
+#   +DraftTransaction+ objects, and instead use the supported public interface
+#   for doing so. See +DraftApprove::Draftable::ClassMethods+ and the README
+#   docs for this.
+#
 # ActiveRecord model for persisting data about a group of draft changes which
 # should be approved or rejected as a single, transactional group.
 #
@@ -20,6 +25,7 @@
 # library (specifically by the +DraftApprove::Transaction+ class).
 #
 # @see Draft
+# @see DraftApprove::Draftable::ClassMethods
 class DraftTransaction < ActiveRecord::Base
   # IMPORTANT NOTE: These constants are written to the database, so cannot be
   # updated without requiring a migration of existing draft data
