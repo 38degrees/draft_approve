@@ -1,3 +1,27 @@
+# ActiveRecord model for persisting data about draft changes.
+#
+# Each +Draft+ must be linked to a +DraftTransaction+, and must have a
+# +draft_action_type+ which specifies whether this draft is to create a new
+# record, update a record, or delete a record.
+#
+# If the draft is to update or delete an existing record in the database, the
+# +Draft+ will also have a link to the +acts_as_draftable+ instance to which it
+# relates, via the polymorphic +draftable+ association.
+#
+# Linking to the +acts_as_draftable+ instance is not possible for drafts which
+# create new records, since the new record does not yet exist in the database!
+# In these cases, the +draftable_type+ column is still set to the name of the
+# class which is to be created, but the +draftable_id+ is +nil+.
+#
+# The +draft_changes+ attribute is a serialized representation of the draft
+# changes. The representation is delegated to a +DraftApprove::Serialization+
+# module. At present, there is only a JSON implementation, suitable for use with
+# PostgreSQL databases.
+#
+# Note that saving 'no-op' +Draft+s is generally avoided by this library
+# (specifically by the +DraftApprove::Persistor+ class).
+#
+# @see DraftTransaction
 class Draft < ActiveRecord::Base
   # IMPORTANT NOTE: These constants are written to the database, so cannot be
   # updated without requiring a migration of existing draft data

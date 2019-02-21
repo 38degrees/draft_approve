@@ -3,10 +3,16 @@ require 'draft_approve/models/draft'
 require 'draft_approve/serialization/json'
 
 module DraftApprove
+
+  # Logic for writing a +Draft+ to the database, and for applying changes
+  # contained within a single +Draft+ and saving them to the database.
+  #
+  # @api private
   class Persistor
     DEFAULT_CREATE_METHOD = 'create!'.freeze
     DEFAULT_UPDATE_METHOD = 'update!'.freeze
     DEFAULT_DELETE_METHOD = 'destroy!'.freeze
+    private_constant :DEFAULT_CREATE_METHOD, :DEFAULT_UPDATE_METHOD, :DEFAULT_DELETE_METHOD
 
     # IMPORTANT NOTE: These constants are written to the database, so cannot be
     # updated without requiring a migration of existing draft data. Such a
@@ -15,11 +21,29 @@ module DraftApprove
     CREATE_METHOD = 'create_method'.freeze
     UPDATE_METHOD = 'update_method'.freeze
     DELETE_METHOD = 'delete_method'.freeze
+    private_constant :CREATE_METHOD, :UPDATE_METHOD, :DELETE_METHOD
 
+    # Write a +Draft+ object to the database to persist any changes to the
+    # given model.
+    #
+    # @param action_type [String] the type of action this draft will represent -
+    #   +CREATE+, +UPDATE+, or +DELETE+
+    # @param model [Object] the +acts_as_draftable+ ActiveRecord model whose
+    #   changes will be saved to the database
+    # @param options [Hash] the options to use when saving this draft, see
+    #   +DraftApprove::Draftable::InstanceMethods#draft_save!+ and
+    #   +DraftApprove::Draftable::InstanceMethods#draft_destroy!+ for details of
+    #   valid options
+    #
+    # @return [Draft, false] the +Draft+ record which was created, or +false+ if
+    #   there were no changes (ie. the result would have been a 'no-op' change)
+    #
+    # @see DraftApprove::Draftable::InstanceMethods#draft_save!
+    # @see DraftApprove::Draftable::InstanceMethods#draft_destroy!
     def self.write_draft_from_model(action_type, model, options = nil)
       raise(ArgumentError, 'model argument must be present') unless model.present?
 
-      if validate_model(options) && model.invalid?
+      if validate_model?(options) && model.invalid?
         raise(ActiveRecord::RecordInvalid, model)
       end
 
@@ -65,6 +89,16 @@ module DraftApprove
       end
     end
 
+    # Write the changes represented by the given +Draft+ object to the database.
+    #
+    # Depending upon the type of +Draft+, this method may create a new record in
+    # the database, update an existing record, or delete a record.
+    #
+    # @param draft [Draft] the +Draft+ object whose changes should be applied
+    #   and persisted to the database
+    #
+    # @return [Object] the +acts_as_draftable+ ActiveRecord model which has been
+    #   created, updated, or deleted
     def self.write_model_from_draft(draft)
       serializer = serializer_class(draft.draft_transaction)
       new_values_hash = serializer.new_values_for_draft(draft)
@@ -106,15 +140,18 @@ module DraftApprove
 
     private
 
-    def self.validate_model(options)
+    # Helper to determine whether to validate a model before writing a draft
+    def self.validate_model?(options)
       options ||= {}
       options.fetch(:validate, true)
     end
 
+    # Helper to get the serialization class to use
     def self.serializer_class(draft_transaction)
       Object.const_get(draft_transaction.serialization).get_serializer
     end
 
+    # Helper to remove invalid options before they get persisted to the database
     def self.sanitize_options_for_db(options)
       return nil if !options || options.empty?
 

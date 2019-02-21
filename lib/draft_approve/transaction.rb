@@ -2,9 +2,25 @@ require 'draft_approve/errors'
 require 'draft_approve/models/draft_transaction'
 
 module DraftApprove
+
+  # Logic for handling ActiveRecord database transactions, and creating
+  # +DraftTransaction+ records.
+  #
+  # @api private
   class Transaction
-    # Start a new database Transaction, and create a new DraftTransaction to
-    # wrap the commands in the block
+
+    # Start a new database transaction, and create a new DraftTransaction to
+    # wrap the commands in the block.
+    #
+    # @param created_by [String] the user or process which created this
+    #   +DraftTransaction+ and the draft changes within it
+    # @param extra_data [Hash] any extra metadata to be stored with this
+    #   +DraftTransaction+
+    # @yield invokes the block, during which methods should be called to save
+    #   +Draft+ objects
+    #
+    # @return [DraftTransaction, nil] the resulting +DraftTransaction+, or +nil+
+    #   if no +Draft+ changes were saved within the given block
     def self.in_new_draft_transaction(created_by: nil, extra_data: nil)
       (draft_transaction, yield_return) = in_new_draft_transaction_helper(created_by: created_by, extra_data: extra_data) do
         yield
@@ -15,8 +31,20 @@ module DraftApprove
       return draft_transaction
     end
 
-    # Ensure the block is running in a DraftTransaction - if there's not one
-    # already, create one
+    # Ensure the block is running in a database transaction and a
+    # +DraftTransaction+ - if there's not one already, create one.
+    #
+    # @param created_by [String] the user or process which created this
+    #   +DraftTransaction+ and the draft changes within it. Ignored if a
+    #   +DraftTransaction+ already exists within the scope of the current
+    #   thread / fiber.
+    # @param extra_data [Hash] any extra metadata to be stored with this
+    #   +DraftTransaction+. Ignored if a +DraftTransaction+ already exists
+    #   within the scope of the current thread / fiber.
+    # @yield invokes the block, during which methods should be called to save
+    #   +Draft+ objects
+    #
+    # @return [Object] the result of yielding to the given block
     def self.ensure_in_draft_transaction(created_by: nil, extra_data: nil)
       draft_transaction = current_draft_transaction
 
@@ -36,7 +64,10 @@ module DraftApprove
       end
     end
 
-    # Get the current Draft Transaction, or raise an error
+    # Get the current +DraftTransaction+ for this thread / fiber, or raise an
+    # error if there is no current +DraftTransaction+
+    #
+    # @return [DraftTransaction]
     def self.current_draft_transaction!
       raise DraftApprove::Errors::NoDraftTransactionError unless current_draft_transaction.present?
 
@@ -45,6 +76,8 @@ module DraftApprove
 
     private
 
+    # Helper to create a new transaction and return both it and the result of
+    # yielding to the given block
     def self.in_new_draft_transaction_helper(created_by: nil, extra_data: nil)
       raise DraftApprove::Errors::NestedDraftTransactionError if current_draft_transaction.present?
       draft_transaction, yield_return = nil

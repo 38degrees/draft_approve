@@ -1,23 +1,46 @@
-require 'draft_approve/serialization/json/helper'
+require 'draft_approve/serialization/json/constants'
 
 module DraftApprove
   module Serialization
     module Json
+      
+      # Logic for serializing changes to ActiveRecord models into JSON format,
+      # and deserializing the changes on a +Draft+ object into the new values
+      # for an ActiveRecord model.
+      #
+      # @api private
       class Serializer
-        HELPER = DraftApprove::Serialization::Json::Helper
 
-        # Serialize changes on an ActiveRecord model into JSON of changes
+        # Serialize changes on an ActiveRecord model into a JSON representation
+        # of the changes.
+        #
+        # @param model [Object] the +acts_as_draftable+ ActiveRecord model whose
+        #   changes will be serialized to JSON
+        #
+        # @return [Hash] a hash representation of the changes to the given
+        #   model, which can be automatically converted to JSON if persisted to
+        #   a JSON formatted database column
         def self.changes_for_model(model)
           JsonSerializer.new(model).changes_for_model
         end
 
-        # De-serialize JSON of changes into a hash of attribute -> new value
+        # Deserialize changes from a +Draft+ object into the new values for the
+        # +acts_as_draftable+ ActiveRecord model the draft relates to.
+        #
+        # @param draft [Draft] the +Draft+ whose changes will be deserialized
+        #
+        # @return [Hash] a hash representation of the new values for the object
+        #   the given draft relates to.
+        #
+        # @example
+        #   draft = Person.new(name: 'Joe Bloggs').save_draft!
+        #   Json::Serializer.new_values_for_draft(draft)
+        #   #=> { "name" => [nil, "Joe Bloggs"] }
         def self.new_values_for_draft(draft)
           JsonDeserializer.new(draft).new_values_for_draft
         end
 
-        private
-
+        # Private Inner Class to contain the JSON Serialization logic
         class JsonSerializer
           def initialize(model)
             @model = model
@@ -45,12 +68,11 @@ module DraftApprove
           end
 
           def non_association_changes
-            # association_attribute_names = @model.class.reflect_on_all_associations(:belongs_to).map do |ref|
-            #   [ref.foreign_type, ref.foreign_key, ref.association_foreign_key]
-            # end.flatten.uniq.compact
-            #
-            # non_association_attribute_names = @model.attribute_names - association_attribute_names
-            non_association_attribute_names = HELPER.non_association_attribute_names(@model.class)
+            association_attribute_names = @model.class.reflect_on_all_associations(:belongs_to).map do |ref|
+              [ref.foreign_type, ref.foreign_key, ref.association_foreign_key]
+            end.flatten.uniq.compact
+
+            non_association_attribute_names = @model.attribute_names - association_attribute_names
 
             return non_association_attribute_names.each_with_object({}) do |attribute_name, result_hash|
               if @model.public_send("#{attribute_name}_changed?")
@@ -71,7 +93,7 @@ module DraftApprove
             end
 
             return nil if old_id.blank? || old_type.blank?
-            return { HELPER::TYPE => old_type, HELPER::ID => old_id }
+            return { Constants::TYPE => old_type, Constants::ID => old_id }
           end
 
           # The new value of an association may be nil, or point to a persisted
@@ -87,13 +109,13 @@ module DraftApprove
             elsif associated_obj.persisted?
               if association.polymorphic?
                 return {
-                  HELPER::TYPE => @model.public_send(association.foreign_type),
-                  HELPER::ID => @model.public_send(association.foreign_key)
+                  Constants::TYPE => @model.public_send(association.foreign_type),
+                  Constants::ID => @model.public_send(association.foreign_key)
                 }
               else
                 return {
-                  HELPER::TYPE => association.class_name,
-                  HELPER::ID => @model.public_send(association.foreign_key)
+                  Constants::TYPE => association.class_name,
+                  Constants::ID => @model.public_send(association.foreign_key)
                 }
               end
             else  # associated_obj not persisted - so we need a persisted draft
@@ -103,11 +125,12 @@ module DraftApprove
                 raise(DraftApprove::Errors::AssociationUnsavedError, "#{association.name} points to an unsaved object")
               end
 
-              return { HELPER::TYPE => draft.class.name, HELPER::ID => draft.id }
+              return { Constants::TYPE => draft.class.name, Constants::ID => draft.id }
             end
           end
         end
 
+        # Private Inner Class to contain the JSON Serialization logic
         class JsonDeserializer
           def initialize(draft)
             @draft = draft
@@ -115,8 +138,7 @@ module DraftApprove
 
           def new_values_for_draft
             draftable_class = Object.const_get(@draft.draftable_type)
-            #association_attribute_names = draftable_class.reflect_on_all_associations(:belongs_to).map(&:name).map(&:to_s)
-            association_attribute_names = HELPER.belongs_to_association_attribute_names(draftable_class)
+            association_attribute_names = draftable_class.reflect_on_all_associations(:belongs_to).map(&:name).map(&:to_s)
 
             return @draft.draft_changes.each_with_object({}) do |(attribute_name, change), result_hash|
               new_value = change[1]
@@ -133,8 +155,8 @@ module DraftApprove
           def associated_model_for_new_value(new_value)
             return nil if new_value.nil?
 
-            associated_model_type = new_value[HELPER::TYPE]
-            associated_model_id = new_value[HELPER::ID]
+            associated_model_type = new_value[Constants::TYPE]
+            associated_model_id = new_value[Constants::ID]
 
             associated_class = Object.const_get(associated_model_type)
 
@@ -151,6 +173,8 @@ module DraftApprove
             end
           end
         end
+
+        private_constant :JsonSerializer, :JsonDeserializer
       end
     end
   end

@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 RSpec.describe DraftApprove::Serialization::Json::DraftChangesProxy do
-  let(:const_type) { DraftApprove::Serialization::Json::Helper::TYPE }
-  let(:const_id)   { DraftApprove::Serialization::Json::Helper::ID }
+  let(:const_type) { DraftApprove::Serialization::Json::Constants::TYPE }
+  let(:const_id)   { DraftApprove::Serialization::Json::Constants::ID }
 
   let(:serialization) { DraftApprove::Serialization::Json }
   let(:proxy)         { serialization::DraftChangesProxy }

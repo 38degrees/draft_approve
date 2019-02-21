@@ -2,10 +2,13 @@ require 'draft_approve/transaction'
 
 module DraftApprove
   module Draftable
+
+    # Class methods automatically added to an ActiveRecord model when
+    # +acts_as_draftable+ is called
     module ClassMethods
       ##### Basic DraftApprove class methods #####
 
-      # Starts a new `DraftTransaction` to group together a number of draft
+      # Starts a new +DraftTransaction+ to group together a number of draft
       # changes that must be approved and applied together.
       #
       # @yield the block which creates a group of draft changes that must be
@@ -15,9 +18,9 @@ module DraftApprove
       # @param extra_data [Hash] any extra metadata to be associated with
       #   these draft changes
       #
-      # @return [DraftTransaction, nil] the `DraftTransaction` which was
-      #   created, or `nil` if no draft changes were saved within the given
-      #   block (ie. if approving the `DraftTransaction` would be a
+      # @return [DraftTransaction, nil] the +DraftTransaction+ which was
+      #   created, or +nil+ if no draft changes were saved within the given
+      #   block (ie. if approving the +DraftTransaction+ would be a
       #   'no-operation')
       def draft_transaction(created_by: nil, extra_data: nil)
         DraftApprove::Transaction.in_new_draft_transaction(created_by: created_by, extra_data: extra_data) do
@@ -31,10 +34,10 @@ module DraftApprove
       # as a draft.
       #
       # @param attributes [Hash] a hash of attribute names to attribute values,
-      #   like the hash expected by the ActiveRecord `create` / `create!`
+      #   like the hash expected by the ActiveRecord +create+ / +create!+
       #   methods
       #
-      # @return [Draft] the resulting `Draft` record (*not* the created
+      # @return [Draft] the resulting +Draft+ record (*not* the created
       #   draftable object)
       def draft_create!(attributes)
         self.new(attributes).draft_save!
@@ -44,10 +47,10 @@ module DraftApprove
       # object with the given attributes and saves the new object as a draft.
       #
       # @param attributes [Hash] a hash of attribute names to attribute values,
-      #   like the hash expected by the ActiveRecord `find_or_create_by` method
+      #   like the hash expected by the ActiveRecord +find_or_create_by+ method
       #
       # @return [Object] the draftable object which was found or created
-      #   (*not* the `Draft` object which may have been saved)
+      #   (*not* the +Draft+ object which may have been saved)
       def find_or_create_draft_by!(attributes)
         # Can just use find_and_draft_update_or_create_draft_by with no block
         return find_and_draft_update_or_create_draft_by(attributes)
@@ -64,12 +67,12 @@ module DraftApprove
       # this new object before it is saved as a draft.
       #
       # @param attributes [Hash] a hash of attribute names to attribute values,
-      #   like the hash expected by the ActiveRecord `find_or_create_by` method
+      #   like the hash expected by the ActiveRecord +find_or_create_by+ method
       # @yield [instance] a block which makes changes to the object instance
       #   which was found or created using the given attributes hash
       #
       # @return [Object] the draftable object which was found and updated, or
-      #   the draftable object which was created (*not* the `Draft` object
+      #   the draftable object which was created (*not* the +Draft+ object
       #   which may have been saved)
       #
       # @example

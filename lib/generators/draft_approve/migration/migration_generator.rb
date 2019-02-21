@@ -2,6 +2,7 @@ require 'rails/generators'
 require 'rails/generators/migration'
 
 module DraftApprove
+  # @api private
   module Generators
     class MigrationGenerator < Rails::Generators::Base
       include Rails::Generators::Migration

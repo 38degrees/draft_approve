@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 RSpec.describe DraftApprove::Serialization::Json::Serializer do
-  let(:const_type) { DraftApprove::Serialization::Json::Helper::TYPE }
-  let(:const_id)   { DraftApprove::Serialization::Json::Helper::ID }
+  let(:const_type) { DraftApprove::Serialization::Json::Constants::TYPE }
+  let(:const_id)   { DraftApprove::Serialization::Json::Constants::ID }
 
   let(:subject) { DraftApprove::Serialization::Json::Serializer }
 

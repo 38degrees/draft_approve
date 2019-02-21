@@ -1,0 +1,6 @@
+--exclude lib/generators/draft_approve/migration/templates/
+--readme README.md
+lib/**/*.rb
+-
+CODE_OF_CONDUCT.md
+LICENSE.md

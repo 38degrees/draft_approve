@@ -1,13 +1,22 @@
-require 'draft_approve/serialization/json/helper'
+require 'draft_approve/serialization/json/constants'
 
 module DraftApprove
   module Serialization
     module Json
+
+      # Wrapper for +Draft+ and +acts_as_draftable+ objects, such that both have
+      # a consistent API to get current and new values within the context of a
+      # specific +DraftTransaction+.
+      #
+      # References to other objects returned by methods from this class are also
+      # wrapped in a +DraftChangesProxy+, meaning it is easy to chain and
+      # navigate complex association trees within the context of a
+      # +DraftTransaction+.
+      #
+      # This can be useful, for example, to display all changes that will occur
+      # on an object, including changes to all it's associated 'child' objects.
       class DraftChangesProxy
         include Comparable
-
-        HELPER = DraftApprove::Serialization::Json::Helper
-        private_constant :HELPER
 
         attr_reader :draft, :draftable, :draftable_class, :draft_transaction
 
@@ -189,8 +198,8 @@ module DraftApprove
         end
 
         # Override comparable for +DraftChangesProxy+ objects. This is so
-        # operators such as + and - work accurately when an array of
-        # +DraftChangesProxy+ objects are being returned. It also makes
+        # operators such as <tt>+</tt> and <tt>-</tt> work accurately when an
+        # array of +DraftChangesProxy+ objects are being returned. It also makes
         # testing easier.
         #
         # @return [Integer] 0 if the given object is a +DraftChangesProxy+
@@ -278,8 +287,8 @@ module DraftApprove
             if new_value.blank?
               return nil  # The association link has been removed on the draft
             else
-              new_value_class = Object.const_get(new_value[HELPER::TYPE])
-              new_value_object = new_value_class.find(new_value[HELPER::ID])
+              new_value_class = Object.const_get(new_value[Constants::TYPE])
+              new_value_object = new_value_class.find(new_value[Constants::ID])
               return draft_proxy_for(new_value_object)
             end
           end
@@ -333,8 +342,8 @@ module DraftApprove
             # eg. if looking for new memberships for Person 1, we want to find
             # Membership objects where the json changes look like this:
             # { "person" => [nil, { "TYPE" => "Person", "ID" => 1 }] }
-            json_query_str_type = "{#{associated_attribute_name},1,#{HELPER::TYPE}}"
-            json_query_str_id = "{#{associated_attribute_name},1,#{HELPER::ID}}"
+            json_query_str_type = "{#{associated_attribute_name},1,#{Constants::TYPE}}"
+            json_query_str_id = "{#{associated_attribute_name},1,#{Constants::ID}}"
 
             created_associations = @draft_transaction.drafts.where(
               draftable_type: associated_class_name
