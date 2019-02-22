@@ -44,16 +44,35 @@ module DraftApprove
       end
 
       # Finds an object with the given attributes. If none found, creates a new
-      # object with the given attributes and saves the new object as a draft.
+      # object with the given attributes, executes the given block, and saves
+      # the new object as a draft.
       #
       # @param attributes [Hash] a hash of attribute names to attribute values,
       #   like the hash expected by the ActiveRecord +find_or_create_by+ method
+      # @yield [instance] a block which sets additional attributes on the newly
+      #   created object instance if no existing instance is found
       #
       # @return [Object] the draftable object which was found or created
       #   (*not* the +Draft+ object which may have been saved)
+      #
+      # @example
+      #   # Find a person by their name. If no person found, create a person
+      #   # with that name, and also set their birth date.
+      #   Person.find_or_create_draft_by!(name: 'My Name') do |p|
+      #     p.birth_date = '1980-01-01'
+      #   end
       def find_or_create_draft_by!(attributes)
-        # Can just use find_and_draft_update_or_create_draft_by with no block
-        return find_and_draft_update_or_create_draft_by(attributes)
+        instance = self.find_by(attributes)
+
+        if instance.blank?
+          instance = self.new(attributes)
+
+          # Only execute the block if this is a new record
+          yield(instance) if block_given?
+        end
+
+        instance.draft_save!
+        return instance
       end
 
       # Finds an object with the given attributes and draft update it with the
@@ -90,12 +109,9 @@ module DraftApprove
 
         # Whether or not this is a new record, execute the block to update
         # additional, non-find_by attributes
-        if block_given?
-          yield(instance)
-        end
+        yield(instance) if block_given?
 
         instance.draft_save!
-
         return instance
       end
     end
