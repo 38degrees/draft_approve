@@ -8,8 +8,8 @@ module DraftApprove
         DraftApprove::Serialization::Json::Serializer
       end
 
-      def self.get_draftable_proxy
-        DraftApprove::Serialization::Json::DraftableProxy
+      def self.get_draft_changes_proxy
+        DraftApprove::Serialization::Json::DraftChangesProxy
       end
     end
   end

@@ -84,4 +84,23 @@ class DraftTransaction < ActiveRecord::Base
     self.update!(status: REJECTED, reviewed_by: reviewed_by, review_reason: review_reason)
     return true
   end
+
+  # Get a +DraftChangesProxy+ for the given object in the scope of this
+  # +DraftTransaction+.
+  #
+  # @param object [Object] the +Draft+ or +acts_as_draftable+ object to
+  #   create a +DraftChangesProxy+ for
+  #
+  # @return [DraftChangesProxy] a proxy to get changes drafted to the given
+  #   object and related objects, within the scope of this +DraftTransaction+
+  def draft_proxy_for(object)
+    serialization_module.get_draft_changes_proxy.new(object, self)
+  end
+
+  # @return the module used for serialization by this +DraftTransaction+.
+  #
+  # @api private
+  def serialization_module
+    Object.const_get(self.serialization)
+  end
 end

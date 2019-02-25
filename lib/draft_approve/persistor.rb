@@ -148,7 +148,7 @@ module DraftApprove
 
     # Helper to get the serialization class to use
     def self.serializer_class(draft_transaction)
-      Object.const_get(draft_transaction.serialization).get_serializer
+      draft_transaction.serialization_module.get_serializer
     end
 
     # Helper to remove invalid options before they get persisted to the database
