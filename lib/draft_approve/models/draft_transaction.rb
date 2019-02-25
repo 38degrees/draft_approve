@@ -93,6 +93,8 @@ class DraftTransaction < ActiveRecord::Base
   #
   # @return [DraftChangesProxy] a proxy to get changes drafted to the given
   #   object and related objects, within the scope of this +DraftTransaction+
+  #
+  # @see DraftApprove::DraftChangesProxy
   def draft_proxy_for(object)
     serialization_module.get_draft_changes_proxy.new(object, self)
   end
