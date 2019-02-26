@@ -232,7 +232,7 @@ module DraftApprove
     #   returns "New <classname>".
     def current_to_s
       if @draftable.present?
-        return "#{@draftable_class}:#{@draftable.id} - #{@draftable.to_s}"
+        return "#{@draftable_class}##{@draftable.id} - #{@draftable.to_s}"
       else
         # No current draftable
         return "New #{@draftable_class}"
