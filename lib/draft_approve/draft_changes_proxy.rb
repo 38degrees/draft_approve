@@ -123,11 +123,13 @@ module DraftApprove
     # @return [Hash<String, Array>] hash of the changes on the proxied
     #   object, eg. <tt>{ "name" => ["old_name", "new_name"] }</tt>
     def changes
-      if @draft.blank?
-        {} # No draft for this object, so no attributes have changed
-      else
-        @draft.draft_changes.each_with_object({}) do |(k,v), new_hash|
-          new_hash[k] = [current_value(k), new_value(k)]
+      @changes_memo ||= begin  # Memoize result
+        if @draft.blank?
+          {} # No draft for this object, so no attributes have changed
+        else
+          @draft.draft_changes.each_with_object({}) do |(k,v), new_hash|
+            new_hash[k] = [current_value(k), new_value(k)]
+          end
         end
       end
     end
@@ -140,21 +142,27 @@ module DraftApprove
     # @return [Object, nil] the old value of the given attribute, or +nil+
     #   if there was no previous value
     def current_value(attribute_name)
-      attribute_name = attribute_name.to_s
-
-      if @draftable.present?
-        # 'Old' value is what is currently on the draftable object
-        return draft_proxy_for(@draftable.public_send(attribute_name))
-      else
-        # No draftable exists, so this must be a CREATE draft, meaning
-        # there's no 'old' value...
-        association = @draftable_class.reflect_on_association(attribute_name)
-        if (association.blank? || association.belongs_to? || association.has_one?)
-          return nil  # Not an association, or links to a single object
-        else
-          return []   # Is a has_many association
+      # Create hash with default block for auto-memoization
+      @current_values_memo ||= Hash.new do |hash, attribute|
+        hash[attribute] = begin
+          if @draftable.present?
+            # Current value is what's on the draftable object
+            draft_proxy_for(@draftable.public_send(attribute))
+          else
+            # No draftable exists, so this must be a CREATE draft, meaning
+            # there's no 'old' value...
+            association = @draftable_class.reflect_on_association(attribute)
+            if (association.blank? || association.belongs_to? || association.has_one?)
+              nil # Not an association, or links to a single object
+            else
+              []  # Is a has_many association
+            end
+          end
         end
       end
+
+      # Get memoized value, or calculate and store it
+      @current_values_memo[attribute_name.to_s]
     end
 
     # The new, drafted value for the given attribute on the proxied +Draft+

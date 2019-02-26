@@ -36,16 +36,22 @@ module DraftApprove
         #
         # @see DraftApprove::DraftChangesProxy#new_value
         def new_value(attribute_name)
-          attribute_name = attribute_name.to_s
-
-          association = @draftable_class.reflect_on_association(attribute_name)
-          if association.blank?
-            new_value_simple_attribute(attribute_name)
-          elsif association.belongs_to?
-            new_value_belongs_to_assocation(attribute_name)
-          else
-            new_value_non_belongs_to_assocation(attribute_name)
+          # Create hash with default block for auto-memoization
+          @new_values_memo ||= Hash.new do |hash, attribute|
+            hash[attribute] = begin
+              association = @draftable_class.reflect_on_association(attribute)
+              if association.blank?
+                new_value_simple_attribute(attribute)
+              elsif association.belongs_to?
+                new_value_belongs_to_assocation(attribute)
+              else
+                new_value_non_belongs_to_assocation(attribute)
+              end
+            end
           end
+
+          # Get memoized value, or calculate and store it
+          @new_values_memo[attribute_name.to_s]
         end
 
         # Whether any changes will occur to the given association of the proxied
@@ -59,11 +65,18 @@ module DraftApprove
         #
         # @see DraftApprove::DraftChangesProxy#association_changed?
         def association_changed?(association_name)
-          return (
-            associations_added(association_name).present? ||
-            associations_updated(association_name).present? ||
-            associations_removed(association_name).present?
-          )
+          # Create hash with default block for auto-memoization
+          @association_changed_memo ||= Hash.new do |hash, association_name|
+            hash[association_name] = begin
+              (
+                associations_added(association_name).present? ||
+                associations_updated(association_name).present? ||
+                associations_removed(association_name).present?
+              )
+            end
+          end
+
+          @association_changed_memo[association_name.to_s]
         end
 
         # All associated objects which will be added to the given association of
@@ -76,7 +89,11 @@ module DraftApprove
         #
         # @see DraftApprove::DraftChangesProxy#associations_added
         def associations_added(association_name)
-          association_values(association_name, :created)
+          @associations_added_memo ||= Hash.new do |hash, association_name|
+            hash[association_name] = association_values(association_name, :created)
+          end
+
+          @associations_added_memo[association_name.to_s]
         end
 
         # All associated objects which have been updated, but remain
@@ -89,7 +106,11 @@ module DraftApprove
         #
         # @see DraftApprove::DraftChangesProxy#associations_updated
         def associations_updated(association_name)
-          association_values(association_name, :updated)
+          @associations_updated_memo ||= Hash.new do |hash, association_name|
+            hash[association_name] = association_values(association_name, :updated)
+          end
+
+          @associations_updated_memo[association_name.to_s]
         end
 
         # All associated objects which will be removed from the given
@@ -102,7 +123,11 @@ module DraftApprove
         #
         # @see DraftApprove::DraftChangesProxy#associations_removed
         def associations_removed(association_name)
-          association_values(association_name, :deleted)
+          @associations_removed_memo ||= Hash.new do |hash, association_name|
+            hash[association_name] = association_values(association_name, :deleted)
+          end
+
+          @associations_removed_memo[association_name.to_s]
         end
 
         # Override comparable for +DraftChangesProxy+ objects. This is so
