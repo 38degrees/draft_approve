@@ -56,22 +56,23 @@ class DraftTransaction < ActiveRecord::Base
   #
   # @return [Boolean] +true+ if the changes were successfully applied
   def approve_changes!(reviewed_by: nil, review_reason: nil)
-    # TODO: Don't approve changes if already approved/rejected
-
     begin
       ActiveRecord::Base.transaction do
+        self.lock!  # Avoid multiple threads applying changes concurrently
+        return false unless self.status == PENDING_APPROVAL
+
         drafts.order(:created_at, :id).each do |draft|
           draft.apply_changes!
         end
+
+        self.update!(status: APPROVED, reviewed_by: reviewed_by, review_reason: review_reason)
+        return true
       end
     rescue StandardError => e
       # Log the error in the database table and re-raise
       self.update!(status: APPROVAL_ERROR, error: "#{e.inspect}\n#{e.backtrace.join("\n")}")
       raise
     end
-
-    self.update!(status: APPROVED, reviewed_by: reviewed_by, review_reason: review_reason)
-    return true
   end
 
   # Reject all changes in this +DraftTransaction+.

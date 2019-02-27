@@ -1,7 +1,8 @@
 require 'spec_helper'
 
 RSpec.describe DraftTransaction do
-  let(:subject) { FactoryBot.create(:draft_transaction) }
+  let(:status)  { DraftTransaction::PENDING_APPROVAL }
+  let(:subject) { FactoryBot.create(:draft_transaction, status: status) }
   let!(:draft)  { FactoryBot.create(:draft, draft_transaction: subject) }
 
   describe '#approve_changes!' do
@@ -10,6 +11,10 @@ RSpec.describe DraftTransaction do
     end
 
     context 'when no error occurs while approving the changes' do
+      it 'returns true' do
+        expect(subject.approve_changes!).to be(true)
+      end
+
       it 'updates the status of the draft transaction to approved' do
         subject.approve_changes!
         expect(subject.reload.status).to eq(DraftTransaction::APPROVED)
@@ -71,6 +76,24 @@ RSpec.describe DraftTransaction do
         end
 
         expect(subject.reload.error).to include(TestError.name)
+      end
+    end
+
+    context 'when the status is not pending approval' do
+      let(:status) { DraftTransaction::APPROVAL_ERROR }
+
+      it 'returns false' do
+        expect(subject.approve_changes!).to be(false)
+      end
+
+      it 'does not change the status of the draft transaction' do
+        subject.approve_changes!
+        expect(subject.reload.status).to eq(status)
+      end
+
+      it 'does not apply any of the draft changes' do
+        expect_any_instance_of(Draft).not_to receive(:apply_changes!)
+        subject.approve_changes!
       end
     end
   end
