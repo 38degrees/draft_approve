@@ -8,10 +8,6 @@ RSpec.describe DraftApprove::Serialization::Json::DraftChangesProxy do
   let(:proxy)         { serialization::DraftChangesProxy }
   let(:transaction)   { FactoryBot.create(:draft_transaction,serialization: serialization.name) }
 
-  # TODO: Test the constructor sets the params as expected. Once this is tested,
-  # potentially remove the duplicate test cases where we test proxying a Draft
-  # as well as proxying a draftable pointed to a Draft, because the state should
-  # be the same either way...
   describe '.new' do
     context 'when the given object is a Draft' do
       context 'when the Draft has no draftable object' do
