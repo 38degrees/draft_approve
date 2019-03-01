@@ -226,13 +226,34 @@ module DraftApprove
 
     # Returns a string representing the current value of the proxied object.
     #
+    # @param include_class_and_id [Boolean] if +true+ and the proxied object
+    #   already exists (ie. this isn't a proxy for a new draft), then append
+    #   "<{classname} #{id}>" to the end of the returned string
+    #
     # @return [String] the +to_s+ of the current value of the proxied object
     #   (ie. the value before any changes would take effect). If there is no
     #   current value (ie. this is a proxy for a new draft) then simply
-    #   returns "New <classname>".
-    def current_to_s
-      if @draftable.present?
+    #   returns "New {classname}".
+    #
+    # @example
+    #   # When draft_changes_proxy is for a new Person
+    #   draft_changes_proxy.current_to_s
+    #   #=> "New Person"
+    #
+    # @example
+    #   # When draft_changes_proxy is for an existing Person
+    #   draft_changes_proxy.current_to_s
+    #   #=> "Joe Blogs"
+    #
+    # @example
+    #   # When draft_changes_proxy is for an existing Person
+    #   draft_changes_proxy.current_to_s(include_class_and_id: true)
+    #   #=> "Joe Blogs <Person #1>"
+    def current_to_s(include_class_and_id: false)
+      if @draftable.present? && include_class_and_id
         return "#{@draftable.to_s} <#{@draftable_class} ##{@draftable.id}>"
+      elsif @draftable.present?
+        return @draftable.to_s
       else
         # No current draftable
         return "New #{@draftable_class}"

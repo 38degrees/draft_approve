@@ -1052,4 +1052,62 @@ RSpec.describe DraftApprove::Serialization::Json::DraftChangesProxy do
       end
     end
   end
+
+  describe '#current_to_s' do
+    context 'when there is a Draft with no persisted draftable' do
+      let(:new_person) do
+        FactoryBot.build(
+          :person,
+          :with_persisted_draft,
+          draft_transaction: transaction,
+          draft_action_type: Draft::CREATE
+        )
+      end
+      let(:subject) { proxy.new(new_person.draft_pending_approval) }
+
+      context 'when include_class_and_id is not given' do
+        it 'returns "New {classname}"' do
+          expect(subject.current_to_s).to eq('New Person')
+        end
+      end
+
+      context 'when include_class_and_id is false' do
+        it 'returns "New {classname}"' do
+          expect(subject.current_to_s(include_class_and_id: false)).to eq('New Person')
+        end
+      end
+
+      context 'when include_class_and_id is true' do
+        it 'returns "New {classname}"' do
+          expect(subject.current_to_s(include_class_and_id: true)).to eq('New Person')
+        end
+      end
+    end
+
+    context 'when proxying a draftable object' do
+      let(:draftable) { FactoryBot.create(:person) }
+      let(:subject)   { proxy.new(draftable, transaction) }
+
+      context 'when include_class_and_id is not given' do
+        let(:expected) { draftable.to_s }
+        it 'returns the to_s of the draftable' do
+          expect(subject.current_to_s).to eq(expected)
+        end
+      end
+
+      context 'when include_class_and_id is false' do
+        let(:expected) { draftable.to_s }
+        it 'returns the to_s of the draftable' do
+          expect(subject.current_to_s(include_class_and_id: false)).to eq(expected)
+        end
+      end
+
+      context 'when include_class_and_id is true' do
+        let(:expected) { "#{draftable.to_s} <#{draftable.class.name} ##{draftable.id}>" }
+        it 'returns the to_s of the draftable plus the draftable class and id' do
+          expect(subject.current_to_s(include_class_and_id: true)).to eq(expected)
+        end
+      end
+    end
+  end
 end
