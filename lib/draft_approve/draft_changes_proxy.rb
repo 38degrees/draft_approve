@@ -228,12 +228,12 @@ module DraftApprove
     #
     # @param include_class_and_id [Boolean] if +true+ and the proxied object
     #   already exists (ie. this isn't a proxy for a new draft), then append
-    #   "<{classname} #{id}>" to the end of the returned string
+    #   "<[classname] #[id]>" to the end of the returned string
     #
     # @return [String] the +to_s+ of the current value of the proxied object
     #   (ie. the value before any changes would take effect). If there is no
     #   current value (ie. this is a proxy for a new draft) then simply
-    #   returns "New {classname}".
+    #   returns "New [classname]".
     #
     # @example
     #   # When draft_changes_proxy is for a new Person
