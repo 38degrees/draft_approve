@@ -8,6 +8,10 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/ruby:2.4.1-node-browsers
+      - image: circleci/postgres:10.6
+        environment:
+          - POSTGRES_USER=draft_approve_test
+          - POSTGRES_DB=draft_approve_test
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
