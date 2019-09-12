@@ -72,4 +72,15 @@ class Draft < ActiveRecord::Base
   def apply_changes!
     DraftApprove::Persistor.write_model_from_draft(self)
   end
+
+  # Get a +DraftChangesProxy+ for this +Draft+
+  #
+  # @return [DraftChangesProxy] a proxy to get changes drafted in this +Draft+
+  #   and related objects, within the scope of the +DraftTransaction+ this
+  #   +Draft+ occurred within
+  #
+  # @see DraftTransaction#draft_proxy_for
+  def draft_proxy
+    draft_transaction.draft_proxy_for(self)
+  end
 end
