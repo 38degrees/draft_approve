@@ -1,18 +1,37 @@
-# Ruby CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-ruby/ for more details
-#
-version: 2
-jobs:
-  build:
+version: 2.1
+
+# executors are environments in which a job runs. Here we use docker contaners.
+executors:
+  ruby-2-6:
     docker:
-      # specify the version you desire here
       - image: circleci/ruby:2.6.6-node-browsers
       - image: circleci/postgres:10.6
         environment:
           - POSTGRES_USER=draft_approve_test
           - POSTGRES_DB=draft_approve_test
 
+  ruby-2-7:
+    docker:
+      - image: circleci/ruby:2.7.2-node-browsers
+      - image: circleci/postgres:10.6
+        environment:
+          - POSTGRES_USER=draft_approve_test
+          - POSTGRES_DB=draft_approve_test
+
+  ruby-3-0:
+    docker:
+      - image: circleci/ruby:3.0.0-node-browsers
+      - image: circleci/postgres:10.6
+        environment:
+          - POSTGRES_USER=draft_approve_test
+          - POSTGRES_DB=draft_approve_test
+
+# Each job is a separate run of a container. It can fail or succeed, depending on their steps.
+# Jobs can be put together into workflows.
+jobs:
+
+  # We can use YAML to define a part of a job we alias as 'build', and then include it in other jobs to keep things DRY
+  build-default: &build
     working_directory: ~/repo
 
     steps:
@@ -31,6 +50,7 @@ jobs:
             bundle install --jobs=4 --retry=3 --path vendor/bundle
 
       - run:
+        # We use the Appraisal gem to automatically install & run tests against multiple versions of ActiveRecord
           name: install dependencies for each appraisal definition
           command: |
             bundle exec appraisal install
@@ -54,3 +74,24 @@ jobs:
       - store_artifacts:
           path: /tmp/test-results
           destination: test-results
+
+  # Specific build jobs for each ruby version
+  build-ruby-2-6:
+    <<: *build
+    executor: ruby-2-6
+
+  build-ruby-2-7:
+    <<: *build
+    executor: ruby-2-7
+
+  build-ruby-3-0:
+    <<: *build
+    executor: ruby-3-0
+
+# In the end we define a workflow, to run the build job for every ruby version
+workflows:
+  build_all_versions:
+    jobs:
+      - build-ruby-2-6
+      - build-ruby-2-7
+      - build-ruby-3-0
