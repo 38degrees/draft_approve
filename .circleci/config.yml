@@ -79,22 +79,31 @@ jobs:
           key: v1-dependencies-{{ checksum "Gemfile.lock" }}
 
       - run:
-          name: run tests
+          name: prep tests
           command: |
             mkdir /tmp/test-results
             TEST_FILES="$(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)"
-          when:
-            condition: << parameters.run-activerecord-5-2-x >>
-            steps:
-              - run: bundle exec appraisal activerecord-5-2-x rspec
-          when:
-            condition: << parameters.run-activerecord-6-0-x >>
-            steps:
-              - run: bundle exec appraisal activerecord-6-0-x rspec
-          when:
-            condition: << parameters.run-activerecord-6-1-x >>
-            steps:
-              - run: bundle exec appraisal activerecord-6-1-x rspec
+
+      - when:
+          condition: << parameters.run-activerecord-5-2-x >>
+          steps:
+            - run:
+                name: run activerecord-5.2.x tests
+                command: bundle exec appraisal activerecord-5-2-x rspec
+      
+      - when:
+          condition: << parameters.run-activerecord-6-0-x >>
+          steps:
+            - run:
+                name: run activerecord-6.0.x tests
+                command: bundle exec appraisal activerecord-6-0-x rspec
+      
+      - when:
+          condition: << parameters.run-activerecord-6-1-x >>
+          steps:
+            - run:
+                name: run activerecord-6.1.x tests
+                command: bundle exec appraisal activerecord-6-1-x rspec
 
       # collect reports
       - store_test_results:
@@ -123,5 +132,5 @@ workflows:
       - build-ruby-2-6
       - build-ruby-2-7
       - build-ruby-3-0:
-        # Rails/ActiveRecord earlier than 6.x is not compatible with ruby 3
-        run-activerecord-5-2-x: false
+          # Rails/ActiveRecord earlier than 6.x is not compatible with ruby 3
+          run-activerecord-5-2-x: false
