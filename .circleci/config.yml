@@ -32,6 +32,17 @@ jobs:
 
   # We can use YAML to define a part of a job we alias as 'build', and then include it in other jobs to keep things DRY
   build-default: &build
+    parameters:
+      run-activerecord-5-2-x:
+        type: boolean
+        default: true
+      run-activerecord-6-0-x:
+        type: boolean
+        default: true
+      run-activerecord-6-1-x:
+        type: boolean
+        default: true
+
     # Specify a default executor for the job
     executor: ruby-2-6
     working_directory: ~/repo
@@ -67,13 +78,21 @@ jobs:
             - ./vendor/bundle
           key: v1-dependencies-{{ checksum "Gemfile.lock" }}
 
-      # run tests!
       - run:
           name: run tests
           command: |
             mkdir /tmp/test-results
             TEST_FILES="$(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)"
-            bundle exec appraisal rspec
+          when:
+            condition: << parameters.run-activerecord-5-2-x >>
+            steps:
+              - run: bundle exec appraisal activerecord-5-2-x rspec
+            condition: << parameters.run-activerecord-6-0-x >>
+            steps:
+              - run: bundle exec appraisal activerecord-6-0-x rspec
+            condition: << parameters.run-activerecord-6-1-x >>
+            steps:
+              - run: bundle exec appraisal activerecord-6-1-x rspec
 
       # collect reports
       - store_test_results:
@@ -101,4 +120,6 @@ workflows:
     jobs:
       - build-ruby-2-6
       - build-ruby-2-7
-      - build-ruby-3-0
+      - build-ruby-3-0:
+        # Rails/ActiveRecord earlier than 6.x is not compatible with ruby 3
+        run-activerecord-5-2-x: false
