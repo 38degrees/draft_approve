@@ -40,17 +40,17 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "activerecord", "~> 5.2"
+  spec.add_dependency "activerecord", ">= 5.2", "< 7.0"
 
-  spec.add_development_dependency "bundler", "~> 1.17"
-  spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "appraisal"
+  spec.add_development_dependency "bundler"
+  spec.add_development_dependency "codecov"
   spec.add_development_dependency "database_cleaner", "~> 1.7"
-  spec.add_development_dependency "sqlite3", "~> 1.3"
+  spec.add_development_dependency "factory_bot"
   spec.add_development_dependency "pg", ">= 0.18", "< 2.0"
-  spec.add_development_dependency "factory_bot", "~> 5.0"
-  spec.add_development_dependency "codecov", "~> 0.1"
-  spec.add_development_dependency "appraisal", "~> 2.2"
-  spec.add_development_dependency "pry", "~> 0.12"
+  spec.add_development_dependency "pry"
+  spec.add_development_dependency "rake"
+  spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "sqlite3", "~> 1.3"
   spec.add_development_dependency "yard", "~> 0.9.18"
 end

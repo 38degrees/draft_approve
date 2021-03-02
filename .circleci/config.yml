@@ -7,16 +7,11 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/ruby:2.4.1-node-browsers
+      - image: circleci/ruby:2.6.6-node-browsers
       - image: circleci/postgres:10.6
         environment:
           - POSTGRES_USER=draft_approve_test
           - POSTGRES_DB=draft_approve_test
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
 
     working_directory: ~/repo
 
@@ -31,9 +26,14 @@ jobs:
             - v1-dependencies-
 
       - run:
-          name: install dependencies
+          name: install base dependencies
           command: |
             bundle install --jobs=4 --retry=3 --path vendor/bundle
+
+      - run:
+          name: install dependencies for each appraisal definition
+          command: |
+            bundle exec appraisal install
 
       - save_cache:
           paths:
@@ -46,7 +46,7 @@ jobs:
           command: |
             mkdir /tmp/test-results
             TEST_FILES="$(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)"
-            bundle exec rspec
+            bundle exec appraisal rspec
 
       # collect reports
       - store_test_results:
