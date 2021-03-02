@@ -87,9 +87,11 @@ jobs:
             condition: << parameters.run-activerecord-5-2-x >>
             steps:
               - run: bundle exec appraisal activerecord-5-2-x rspec
+          when:
             condition: << parameters.run-activerecord-6-0-x >>
             steps:
               - run: bundle exec appraisal activerecord-6-0-x rspec
+          when:
             condition: << parameters.run-activerecord-6-1-x >>
             steps:
               - run: bundle exec appraisal activerecord-6-1-x rspec
