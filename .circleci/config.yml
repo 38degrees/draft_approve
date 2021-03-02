@@ -32,6 +32,8 @@ jobs:
 
   # We can use YAML to define a part of a job we alias as 'build', and then include it in other jobs to keep things DRY
   build-default: &build
+    # Specify a default executor for the job
+    executor: ruby-2-6
     working_directory: ~/repo
 
     steps:
