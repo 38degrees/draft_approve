@@ -8,7 +8,7 @@ The specific features / functionality offered by DraftApprove are:
 
 * No changes are needed to your existing database tables
 * No updates are required to your existing ActiveRecord queries or raw SQL queries
-* It is possible to save drafts of new records, save draft changes to existing records, and save draft deletions of records
+* It is possible to save drafts of new records, save draft updates to existing records, and save draft deletions of records
 * Multiple related draft changes (new records, updates, deletions) may be grouped together in a 'Draft Transaction' which must then be approved or rejected as a whole
   * This includes being able to save a draft of a model which references an _unsaved_ model - as long as that unsaved model already has a draft
 * Each model may only have one pending draft at a time
@@ -253,6 +253,30 @@ end
 ### More examples
 
 Further examples can be seen in the [integration tests](spec/integration).
+
+## Compatibility
+
+### Ruby & Active Record versions
+
+DraftApprove has no runtime dependencies aside from Ruby and ActiveRecord. The test suite for DraftApprove tests various combinations of Ruby and ActiveRecord. The table below shows which combinations are known to pass the test suite, and which combinations do not work. Combinations which are not listed below may or may not work - use at your own risk!
+
+|                    |     Ruby 2.6.6     |     Ruby 2.7.2     |     Ruby 3.0.0     |
+|               ---: |        :---:       |        :---:       |        :---:       |
+| ActiveRecord 2.4.x | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| ActiveRecord 6.0.x | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| ActiveRecord 6.1.x |       :x: ¹        | :heavy_check_mark: | :heavy_check_mark: |
+
+**Notes**
+
+- ¹ ActiveRecord 6.1.x is not compatible with Ruby 2.6.6 
+
+### Compatible Databases
+
+DraftApprove is currently tested against version 10.6 of the Postgres database. It is expected to work with Postgres versions 10.6 and higher.
+
+Compatibility with other databases has not been tested, but a SQL-compliant database which supports JSON columns will likely work.
+
+Support for database which do not support JSON columns could be added by creating a new `Serialization` module which can serialize, deserialize, and query drafts in another format. Take a look at the existing `DraftApprove::Serialization::Json` module to see what methods are required, and how you might go about this.
 
 ## Frequently Asked Questions
 
