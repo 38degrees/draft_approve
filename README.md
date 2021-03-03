@@ -275,11 +275,11 @@ Further examples can be seen in the [integration tests](spec/integration).
 
 DraftApprove has no runtime dependencies aside from Ruby and ActiveRecord. The test suite for DraftApprove tests various combinations of Ruby and ActiveRecord. The table below shows which combinations are known to pass the test suite, and which combinations do not work. Combinations which are not listed below may or may not work - use at your own risk!
 
-|                    |     Ruby 2.6.6     |     Ruby 2.7.2     |     Ruby 3.0.0     |
-|               ---: |        :---:       |        :---:       |        :---:       |
-| ActiveRecord 2.4.x | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| ActiveRecord 6.0.x | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| ActiveRecord 6.1.x |       :x: ¹        | :heavy_check_mark: | :heavy_check_mark: |
+|                        |     Ruby 2.6.6     |     Ruby 2.7.2     |     Ruby 3.0.0     |
+|                   ---: |        :---:       |        :---:       |        :---:       |
+| **ActiveRecord 2.4.x** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| **ActiveRecord 6.0.x** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| **ActiveRecord 6.1.x** |       :x: ¹        | :heavy_check_mark: | :heavy_check_mark: |
 
 **Notes**
 
