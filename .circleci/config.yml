@@ -90,14 +90,14 @@ jobs:
             - run:
                 name: run activerecord-5.2.x tests
                 command: bundle exec appraisal activerecord-5-2-x rspec
-      
+
       - when:
           condition: << parameters.run-activerecord-6-0-x >>
           steps:
             - run:
                 name: run activerecord-6.0.x tests
                 command: bundle exec appraisal activerecord-6-0-x rspec
-      
+
       - when:
           condition: << parameters.run-activerecord-6-1-x >>
           steps:
