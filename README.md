@@ -308,15 +308,61 @@ All the above gem also have other specific features / advantages unique to them,
 
 [MIT License](LICENSE.md)
 
-Copyright (c) 2019, 38 Degrees Ltd
+Copyright (c) 2019-2021, 38 Degrees Ltd
 
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
+### Running Tests
+
+**Pre-Requisites**
+
+DraftApprove is primarily concerned with writing data to a database, so you need a local database running to run the tests. Currently the only supported database is Postgres.
+
+You need a postgres installation which the test can connect to using the details in `spec/database.yml`. ie:
+
+- host: localhost
+- port: 5432
+- database: draft_approve_test
+- username: draft_approve_test
+- password: draft_approve_test
+
+**Simple Testing**
+
+Run `rake spec` or `bundle exec rspec` to run tests with the current ruby installation, and the currently installed gems.
+
+**Testing with different versions of ActiveRecord**
+
+The CI config for DraftApprove tests the gem against multiple versions of ActiveRecord (ActiveRecord is the only gem which DraftApprove has a runtime dependency on).
+
+You may wish to test with different versions of ActiveRecord locally. Testing different versions of dependencies is made easy by using the [Appraisal gem](https://github.com/thoughtbot/appraisal), which is included as a test dependency. The Appraisal gem runs tests against multiple appraisal definitions, which is a list of dependencies - in our case, just a more specific version of ActiveRecord. You can see the appraisal definitions, and add more, in the `Appraisal` file in the root directory of the project.
+
+Run `bundle exec appraisal install` to install the necessary gems for each appraisal definition.
+
+Run `bundle exec appraisal rspec` to run the tests for every appraisal definition.
+
+Run `bundle exec appraisal <appraisal_definition_name> rspec` to run the tests for a specific appraisal definition - eg. `bundle exec appraisal activerecord-5-2-x rspec`
+
+**Testing with different ruby versions**
+
+The CI config for DraftApprove _also_ tests the gem against multiple versions of Ruby.
+
+If you wish to do this locally, you may simply install another version of Ruby, install gems, and run tests. However, the recommended way to manage this is via [RVM](https://rvm.io/).
+
+With rvm installed, you can install new ruby versions with `rvm install <ruby-version>` - eg. `rvm install 3.0.0`
+
+You can then use `rvm-exec <ruby-version>` to run commands using a specific version of ruby. For example, `rvm-exec 3.0.0 bash -c "bundle exec appraisal install && bundle exec appraisal rspec"` would install the necessary gems for all appraisal definitions, and then run the tests against each appraisal definition, all using version 3.0.0 of ruby.  
+
+### Installing the gem locally
+
 To install this gem onto your local machine, run `bundle exec rake install`. Alternatively you may run `gem build draft_approve.gemspec` to generate the `.gem` file, then run `gem install ./draft_approve-0.1.0.gem` (replace `0.1.0` with the correct gem version).
 
+### Releasing a new version of the gem
+
 To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+
+### Generating documentation
 
 To generate the YARD documentation locally, run `yard doc`, which will install the documentation into the `doc/` folder.
 
