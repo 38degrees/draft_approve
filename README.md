@@ -6,12 +6,12 @@
 * [Installation](#installation)
 * [Usage](#usage)
 * [Compatibility](#compatibility)
-* [Frequently Asked Questions](#images)
-* [Alternative Drafting Gems](#code)
+* [Frequently Asked Questions](#frequently-asked-questions)
+* [Alternative Drafting Gems](#alternative-drafting-gems)
 * [License](#license)
 * [Development](#development)
 * [Contributing](#contributing)
-* [Code of Conduct](#hr)
+* [Code of Conduct](#code-of-conduct)
 
 ## Introduction
 
