@@ -46,7 +46,7 @@ module DraftApprove
       if validate_model?(options) && model.invalid?
         raise(ActiveRecord::RecordInvalid, model)
       end
-
+      result = false
       DraftApprove::Transaction.ensure_in_draft_transaction do
         # Now we're in a Transaction, ensure we don't get multiple drafts for the same object
         if model.persisted? && Draft.pending_approval.where(draftable: model).count > 0
@@ -76,17 +76,21 @@ module DraftApprove
         changes = serializer.changes_for_model(model)
 
         # Don't write no-op updates!
-        return false if changes.empty? && action_type == Draft::UPDATE
-
-        return model.draft_pending_approval = Draft.create!(
-          draft_transaction: draft_transaction,
-          draftable_type: draftable_type,
-          draftable_id: draftable_id,
-          draft_action_type: action_type,
-          draft_changes: changes,
-          draft_options: draft_options
-        )
+        if changes.empty? && action_type == Draft::UPDATE
+          next
+        else 
+          model.draft_pending_approval = Draft.create!(
+              draft_transaction: draft_transaction,
+              draftable_type: draftable_type,
+              draftable_id: draftable_id,
+              draft_action_type: action_type,
+              draft_changes: changes,
+              draft_options: draft_options
+            )
+          result = model.draft_pending_approval
+        end
       end
+      result
     end
 
     # Write the changes represented by the given +Draft+ object to the database.
